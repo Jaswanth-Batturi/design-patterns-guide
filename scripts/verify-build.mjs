@@ -33,7 +33,7 @@ for (const file of required) {
 }
 
 const indexHtml = readFileSync(join(dist, 'index.html'), 'utf8');
-if (!indexHtml.includes('Design Patterns, Simply')) {
+if (!indexHtml.includes('Design Patterns')) {
   console.error('MISSING: homepage branding');
   failed++;
 }

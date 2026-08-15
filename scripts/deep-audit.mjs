@@ -165,7 +165,7 @@ async function auditBrowser() {
 
   // Library nav from pattern page — must include base path
   await page.goto(`${BASE}/patterns/singleton/`, { waitUntil: 'domcontentloaded' });
-  await page.getByLabel('Main').getByRole('link', { name: 'Library', exact: true }).click();
+  await page.getByLabel('Main').getByRole('link', { name: 'Patterns', exact: true }).click();
   await page.waitForTimeout(400);
   const libUrl = page.url();
   if (!libUrl.includes('#patterns') && !libUrl.endsWith('/design-patterns-guide/')) {
@@ -174,7 +174,7 @@ async function auditBrowser() {
 
   // Breadcrumb Library link
   await page.goto(`${BASE}/patterns/singleton/`, { waitUntil: 'domcontentloaded' });
-  await page.getByRole('navigation', { name: 'Breadcrumb' }).getByText('Library').click();
+  await page.getByRole('navigation', { name: 'Breadcrumb' }).getByText('Patterns').click();
   await page.waitForTimeout(400);
 
   // Each pattern: runner iframe present

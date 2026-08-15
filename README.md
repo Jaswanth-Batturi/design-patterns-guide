@@ -1,4 +1,4 @@
-# Design Patterns, Simply
+# Design Patterns
 
 Learn when to use each of the 23 Gang of Four patterns — everyday scenes, without/with tradeoffs, runnable Java, and quizzes.
 

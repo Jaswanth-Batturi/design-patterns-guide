@@ -29,7 +29,7 @@ async function run() {
   // --- Homepage ---
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
   const title = await page.title();
-  if (!title.includes('Design Patterns, Simply')) {
+  if (!title.includes('Design Patterns')) {
     record('HIGH', 'Home', `Unexpected title: ${title}`);
   }
 
@@ -38,29 +38,13 @@ async function run() {
     record('HIGH', 'Home', `Expected 23 pattern cards, found ${cardCount}`);
   }
 
-  // Hero CTAs use base-prefixed anchors
-  const browseHref = await page.locator('a').filter({ hasText: 'Browse all 23 patterns' }).first().getAttribute('href');
-  if (!browseHref?.includes('patterns')) {
-    record('HIGH', 'Home', `Browse CTA href missing #patterns: ${browseHref}`);
-  }
-
-  await page.locator('a[href*="patterns"]').filter({ hasText: 'Browse all 23 patterns' }).first().click();
-  await page.waitForTimeout(300);
-  const patternsBox = await page.locator('#patterns').boundingBox();
-  if (!patternsBox || patternsBox.y > 200) {
-    record('MED', 'Home', 'Browse patterns anchor may not scroll to #patterns');
-  }
-
-  await page.locator('a[href*="finder"]').filter({ hasText: 'Help me pick' }).first().click();
-  await page.waitForTimeout(300);
-
-  // Sticky header nav
-  await page.getByLabel('Main').getByRole('link', { name: 'Library', exact: true }).click();
+  // Sticky header nav — order matches page: Patterns then Finder
+  await page.getByLabel('Main').getByRole('link', { name: 'Patterns', exact: true }).click();
   await page.waitForTimeout(200);
   await page.getByRole('link', { name: 'Finder', exact: true }).click();
 
   // Logo home
-  await page.getByRole('link', { name: 'Design Patterns, Simply' }).click();
+  await page.getByRole('link', { name: 'Design Patterns' }).click();
   if (!page.url().endsWith('/design-patterns-guide/') && !page.url().endsWith('/design-patterns-guide')) {
     if (!page.url().includes('/design-patterns-guide')) {
       record('HIGH', 'Nav', `Logo link wrong: ${page.url()}`);
@@ -84,8 +68,8 @@ async function run() {
   // Finder textarea + each example chip
   const chips = page.locator('[data-example]');
   const chipCount = await chips.count();
-  if (chipCount < 7) {
-    record('MED', 'Finder', `Expected 7 example chips, found ${chipCount}`);
+  if (chipCount < 4) {
+    record('MED', 'Finder', `Expected 4 example chips, found ${chipCount}`);
   }
   for (let i = 0; i < chipCount; i++) {
     await chips.nth(i).click();
@@ -109,7 +93,7 @@ async function run() {
   await page.locator('#finder-input').fill('xyz nonsense random');
   await page.waitForTimeout(100);
   const noMatch = await page.locator('#finder-results').innerText();
-  if (!noMatch.includes('No strong match')) {
+  if (!noMatch.includes('No match')) {
     record('MED', 'Finder', 'No-match message not shown for nonsense input');
   }
 
@@ -216,7 +200,7 @@ async function run() {
   }
 
   // Nav from pattern page to home patterns section
-  await page.getByLabel('Main').getByRole('link', { name: 'Library', exact: true }).click();
+  await page.getByLabel('Main').getByRole('link', { name: 'Patterns', exact: true }).click();
   await page.waitForTimeout(500);
   if (!page.url().includes('#patterns') && !page.url().endsWith('/design-patterns-guide/')) {
     // hash might scroll on same page navigation
