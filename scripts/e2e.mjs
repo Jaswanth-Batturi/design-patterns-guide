@@ -182,7 +182,7 @@ async function run() {
     record('HIGH', 'Pattern page', 'Section jump links missing');
   }
   await jumpNav.filter({ hasText: 'Run' }).click();
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
   const runBox = await page.locator('#run').boundingBox();
   if (!runBox || runBox.y > 250) {
     record('MED', 'Pattern page', 'Run jump link may not scroll to #run');

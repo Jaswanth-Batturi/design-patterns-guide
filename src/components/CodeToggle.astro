@@ -99,7 +99,7 @@ const afterHtml = await highlightJava(after);
       return raw ?? '';
     };
 
-    const show = (view: string) => {
+    const show = (view) => {
       active = view;
       beforePanel?.classList.toggle('hidden', view !== 'before');
       afterPanel?.classList.toggle('hidden', view !== 'after');

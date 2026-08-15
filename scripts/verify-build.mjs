@@ -58,6 +58,11 @@ if (!observerHtml.includes('data-oc-frame')) {
   console.error('MISSING: OneCompiler runner on observer page');
   failed++;
 }
+const singletonHtml = readFileSync(join(dist, 'patterns/singleton/index.html'), 'utf8');
+if (singletonHtml.includes('(view: string)')) {
+  console.error('BROKEN JS: TypeScript left in CodeToggle script (define:vars scripts are not transpiled)');
+  failed++;
+}
 if (!observerHtml.includes('scene-card') && !observerHtml.includes('Real-life analogy')) {
   console.error('MISSING: real-life scene on observer page');
   failed++;
