@@ -1,21 +1,15 @@
 ---
 interface Props {
-  example: string;
   patternName: string;
-  intro: string;
   withoutPains: [string, string, string];
   withWins: [string, string, string];
 }
 
-const { example, patternName, intro, withoutPains, withWins } = Astro.props;
+const { patternName, withoutPains, withWins } = Astro.props;
 ---
 
 <section aria-labelledby="tradeoff-heading">
   <h2 id="tradeoff-heading" class="text-lg font-semibold text-white">Without vs with the pattern</h2>
-  <p class="mt-2 text-base leading-relaxed text-slate-400">{intro}</p>
-  <p class="mt-2 text-sm text-slate-500">
-    Still using <span class="text-slate-300">{example}</span> — here is the same story in code terms.
-  </p>
 
   <div class="mt-5 grid gap-4 sm:grid-cols-2">
     <div class="rounded-xl border border-rose-500/30 bg-gradient-to-br from-rose-950/45 to-slate-950/40 p-5">

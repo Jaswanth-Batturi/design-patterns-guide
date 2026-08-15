@@ -4,36 +4,26 @@ import { highlightJava } from '../utils/highlight';
 interface Props {
   before: string;
   after: string;
-  takeaway: string;
-  example?: string;
   beforeHint?: string;
   afterHint?: string;
   defaultView?: 'before' | 'after';
 }
 
-const { before, after, takeaway, example, beforeHint, afterHint, defaultView = 'before' } = Astro.props;
+const { before, after, beforeHint, afterHint, defaultView = 'before' } = Astro.props;
 const id = `code-${Math.random().toString(36).slice(2, 9)}`;
 const beforeHtml = await highlightJava(before);
 const afterHtml = await highlightJava(after);
 ---
 
 <section class="space-y-4">
-  <div>
-    <h2 class="text-lg font-semibold text-white">Code: problem vs fix</h2>
-    {
-      example && (
-        <p class="mt-1 text-sm text-indigo-300/90">
-          Same example: <span class="text-indigo-200">{example}</span>
-        </p>
-      )
-    }
-    <p class="mt-2 text-base leading-relaxed text-slate-400">{takeaway}</p>
-    <p class="mt-2 text-sm text-slate-500">
-      Read the full “before” code first, then switch to “Fixed” to see the pattern applied. Comments tie each line back to the real-life story above.
-    </p>
-  </div>
+  <h2 class="text-lg font-semibold text-white">Code: problem vs fix</h2>
 
-  <div class="code-toggle rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden" data-code-toggle={id} data-before-raw={before} data-after-raw={after}>
+  <div
+    class="code-toggle rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden"
+    data-code-toggle={id}
+    data-before-raw={before}
+    data-after-raw={after}
+  >
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-3 py-2">
       <div class="flex gap-2" role="tablist" aria-label="Code comparison">
         <button

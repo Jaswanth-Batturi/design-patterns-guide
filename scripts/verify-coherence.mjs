@@ -26,10 +26,6 @@ for (const slug of slugs) {
     continue;
   }
   const html = readFileSync(htmlPath, 'utf8');
-  if (!html.includes('Expected output')) {
-    console.error(`MISSING expected output UI: ${slug}`);
-    failed++;
-  }
   if (!html.includes('Copy demo code')) {
     console.error(`MISSING copy demo button: ${slug}`);
     failed++;
@@ -39,11 +35,6 @@ for (const slug of slugs) {
     console.error(`EMPTY runExpect in HTML: ${slug}`);
     failed++;
   }
-  if (!html.includes('<ol class="mt-3')) {
-    console.error(`MISSING tryItSteps list: ${slug}`);
-    failed++;
-  }
-
   const slugMarker = overridesSrc.includes(`'${slug}': {`)
     ? `'${slug}': {`
     : `${slug}: {`;

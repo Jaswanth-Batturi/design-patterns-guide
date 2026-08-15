@@ -127,8 +127,8 @@ async function testPatternPage(page, slug) {
     record('HIGH', slug, 'Breadcrumb incomplete');
   }
 
-  const details = page.locator('details summary');
-  if (await details.count() === 0) record('MED', slug, 'When to use details missing');
+  const decision = page.locator('#decision');
+  if (await decision.count() === 0) record('MED', slug, 'When to use section missing');
 
   await testCodeToggle(page, slug);
   await completeQuiz(page, slug);

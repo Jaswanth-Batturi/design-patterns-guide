@@ -4,6 +4,7 @@ import CodeToggle from '../../components/CodeToggle.astro';
 import Quiz from '../../components/Quiz.astro';
 import PatternStory from '../../components/PatternStory.astro';
 import TradeoffCompare from '../../components/TradeoffCompare.astro';
+import WhenToUse from '../../components/WhenToUse.astro';
 import CodeRunner from '../../components/CodeRunner.astro';
 import { patterns, getPattern, categoryLabels } from '../../data/patterns';
 import { enrichPattern } from '../../data/patterns/enrich';
@@ -54,10 +55,6 @@ const sections = [
     </div>
     <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{pattern.name}</h1>
     <p class="mt-2 text-base text-slate-400">{pattern.oneLiner}</p>
-    <p class="mt-2 text-xs text-slate-500">
-      Example thread: <span class="text-indigo-300/90">{pattern.exampleName}</span>
-      · Analogy → Code → Compare → Run → When to use
-    </p>
   </header>
 
   <nav
@@ -90,8 +87,6 @@ const sections = [
       <CodeToggle
         before={pattern.displayCodeBefore}
         after={pattern.displayCodeAfter}
-        takeaway={pattern.codeTakeaway}
-        example={pattern.exampleName}
         beforeHint={pattern.codeBeforeHint}
         afterHint={pattern.codeAfterHint}
         defaultView="before"
@@ -100,49 +95,21 @@ const sections = [
 
     <div id="tradeoffs" class="scroll-mt-36">
       <TradeoffCompare
-        example={pattern.exampleName}
         patternName={pattern.name}
-        intro={pattern.tradeoffIntro}
         withoutPains={pattern.withoutPatternPains}
         withWins={pattern.withPatternWins}
       />
     </div>
 
     <div id="run" class="scroll-mt-36">
-      <CodeRunner
-        code={pattern.runDemo}
-        runExpect={pattern.runExpect}
-        example={pattern.exampleName}
-        codeBridge={pattern.codeBridge}
-        tryItSteps={pattern.tryItSteps}
-      />
+      <CodeRunner code={pattern.runDemo} runExpect={pattern.runExpect} />
     </div>
 
-    <details id="decision" class="scroll-mt-36 rounded-xl border border-slate-800 bg-slate-900/30 px-5 py-4" open>
-      <summary class="cursor-pointer text-base font-medium text-slate-200 select-none">When to use or skip</summary>
-      <p class="mt-4 text-base leading-relaxed text-slate-400">
-        These guidelines apply after you understand the <span class="text-slate-300">{pattern.exampleName}</span> example above.
-        Use {pattern.name} when the problem matches the pattern’s intent; skip it when a simpler approach is enough.
-      </p>
-      <div class="mt-4 grid gap-4 sm:grid-cols-2 text-base text-slate-400 leading-relaxed">
-        <div>
-          <p class="mb-2 text-xs font-medium uppercase tracking-wide text-emerald-400/80">Use when</p>
-          <ul class="space-y-1.5">
-            {pattern.whenToUse.map((item) => (
-              <li>+ {item}</li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <p class="mb-2 text-xs font-medium uppercase tracking-wide text-rose-400/80">Skip when</p>
-          <ul class="space-y-1.5">
-            {pattern.whenNotToUse.map((item) => (
-              <li>− {item}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </details>
+    <WhenToUse
+      patternName={pattern.name}
+      useWhen={pattern.whenToUse}
+      skipWhen={pattern.whenNotToUse}
+    />
 
     <div id="quiz" class="scroll-mt-36">
       <Quiz questions={pattern.quiz} />
