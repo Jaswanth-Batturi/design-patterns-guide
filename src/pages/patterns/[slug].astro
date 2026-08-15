@@ -3,10 +3,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CodeToggle from '../../components/CodeToggle.astro';
 import Quiz from '../../components/Quiz.astro';
 import AnalogyCard from '../../components/AnalogyCard.astro';
-import JdoodleRunner from '../../components/JdoodleRunner.astro';
+import CodeRunner from '../../components/CodeRunner.astro';
 import { patterns, getPattern, categoryLabels } from '../../data/patterns';
 import { patternPath, sitePath } from '../../utils/paths';
-import { toRunnableJava } from '../../utils/runnable';
 
 export function getStaticPaths() {
   return patterns.map((pattern) => ({
@@ -23,7 +22,6 @@ const related = pattern.relatedPatterns
 const patternIndex = patterns.findIndex((p) => p.slug === pattern.slug);
 const prevPattern = patternIndex > 0 ? patterns[patternIndex - 1] : null;
 const nextPattern = patternIndex < patterns.length - 1 ? patterns[patternIndex + 1] : null;
-const runnableCode = toRunnableJava(pattern.codeAfter);
 
 const categoryColor: Record<string, string> = {
   creational: 'text-emerald-400',
@@ -94,7 +92,7 @@ const categoryColor: Record<string, string> = {
       <p class="mt-2 text-sm text-slate-400">Syntax-highlighted — toggle messy vs clean, then copy or run.</p>
       <div class="mt-4 space-y-4">
         <CodeToggle before={pattern.codeBefore} after={pattern.codeAfter} />
-        <JdoodleRunner code={runnableCode} />
+        <CodeRunner code={pattern.codeAfter} />
       </div>
     </section>
 

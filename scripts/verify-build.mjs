@@ -54,8 +54,8 @@ if (!observerHtml.includes('shiki') && !observerHtml.includes('github-dark')) {
     failed++;
   }
 }
-if (!observerHtml.includes('data-jdoodle-runner')) {
-  console.error('MISSING: JDoodle runner on observer page');
+if (!observerHtml.includes('data-oc-frame')) {
+  console.error('MISSING: OneCompiler runner on observer page');
   failed++;
 }
 if (!observerHtml.includes('analogy-card')) {

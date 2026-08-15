@@ -27,7 +27,7 @@ async function run() {
   const page = await context.newPage();
 
   // --- Homepage ---
-  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
   const title = await page.title();
   if (!title.includes('Patterns in Practice')) {
     record('HIGH', 'Home', `Unexpected title: ${title}`);
@@ -110,7 +110,7 @@ async function run() {
 
   // Open first pattern card
   await page.locator('.pattern-card a').first().click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // --- Pattern page deep test (observer) ---
   if (!page.url().includes('/patterns/')) {
@@ -119,8 +119,8 @@ async function run() {
 
   // Breadcrumbs
   await page.getByRole('navigation', { name: 'Breadcrumb' }).getByText('Home').click();
-  await page.waitForLoadState('networkidle');
-  await page.goto(`${BASE}/patterns/observer/`, { waitUntil: 'networkidle' });
+  await page.waitForLoadState('domcontentloaded');
+  await page.goto(`${BASE}/patterns/observer/`, { waitUntil: 'domcontentloaded' });
 
   // Code toggle
   const beforeTab = page.getByRole('tab', { name: 'Without pattern' });
@@ -164,14 +164,20 @@ async function run() {
     record('MED', 'Quiz', 'Quiz score not shown after all questions');
   }
 
-  // JDoodle load runner
-  const loadBtn = page.getByRole('button', { name: 'Load runner' });
-  await loadBtn.click();
-  await page.waitForTimeout(1500);
-  const runnerLoaded = await page.getByRole('button', { name: 'Runner loaded' }).count() > 0;
-  const hostVisible = await page.locator('[data-runner-host]:not(.hidden)').count() > 0;
-  if (!runnerLoaded || !hostVisible) {
-    record('MED', 'JDoodle', 'Runner did not load (may be network blocked in CI)');
+  // Java runner (OneCompiler iframe — must load and show editor)
+  const runnerFrame = page.locator('[data-oc-frame]');
+  const frameSrc = await runnerFrame.getAttribute('src');
+  if (!frameSrc?.includes('onecompiler.com/embed/java')) {
+    record('HIGH', 'CodeRunner', `Bad iframe src: ${frameSrc}`);
+  }
+  await page.waitForTimeout(3500);
+  const loadingHidden = await page.locator('[data-runner-loading].hidden').count() > 0;
+  const frameVisible = await runnerFrame.evaluate((el) => {
+    const style = window.getComputedStyle(el);
+    return style.opacity !== '0' && el.clientHeight > 100;
+  });
+  if (!loadingHidden || !frameVisible) {
+    record('HIGH', 'CodeRunner', 'OneCompiler editor did not become visible after load');
   }
 
   // Related pattern link
@@ -182,7 +188,7 @@ async function run() {
       record('HIGH', 'Related', `Bad related link: ${relHref}`);
     }
     await related.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   }
 
   // Nav from pattern page to home patterns section
@@ -193,7 +199,7 @@ async function run() {
   }
 
   // Prev/next on strategy
-  await page.goto(`${BASE}/patterns/strategy/`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/patterns/strategy/`, { waitUntil: 'domcontentloaded' });
   const nextLink = page.getByRole('navigation', { name: 'Pattern navigation' }).locator('a').last();
   if (await nextLink.count() > 0) {
     await nextLink.click();
@@ -225,7 +231,7 @@ async function run() {
   }
 
   // Skip link
-  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
   await page.keyboard.press('Tab');
   const skip = page.locator('.skip-link');
   // focus might be on skip first

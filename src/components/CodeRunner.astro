@@ -1,0 +1,83 @@
+---
+import { javaToCompilerFiles } from '../utils/java-files';
+
+interface Props {
+  code: string;
+}
+
+const { code } = Astro.props;
+const frameId = `oc-runner-${Math.random().toString(36).slice(2, 9)}`;
+const files = javaToCompilerFiles(code);
+const embedSrc =
+  'https://onecompiler.com/embed/java?listenToEvents=true&hideLanguageSelection=true&theme=dark&hideTitle=true';
+---
+
+<section class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden" data-code-runner>
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+    <div>
+      <h3 class="text-sm font-semibold text-white">Try it — Java</h3>
+      <p class="text-xs text-slate-500">Edit the code below and click <strong class="text-slate-400">Run</strong> in the editor.</p>
+    </div>
+    <a
+      href="https://onecompiler.com/java"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-xs text-indigo-400 hover:text-indigo-300"
+    >
+      Open full editor ↗
+    </a>
+  </div>
+
+  <div data-runner-status class="px-4 py-3 text-xs text-slate-500 hidden" role="status"></div>
+
+  <div class="relative min-h-[420px] bg-slate-950">
+    <div data-runner-loading class="absolute inset-0 flex items-center justify-center text-sm text-slate-500">
+      Loading Java editor…
+    </div>
+    <iframe
+      id={frameId}
+      title="Java code runner (OneCompiler)"
+      src={embedSrc}
+      class="w-full min-h-[420px] border-0 bg-slate-950 opacity-0 transition-opacity duration-300"
+      data-oc-frame
+      loading="lazy"
+      allow="clipboard-write"
+    ></iframe>
+  </div>
+</section>
+
+<script define:vars={{ frameId, files }}>
+  const iframe = document.getElementById(frameId);
+  const section = iframe?.closest('[data-code-runner]');
+  const loading = section?.querySelector('[data-runner-loading]');
+  const status = section?.querySelector('[data-runner-status]');
+
+  let populated = false;
+
+  const populateEditor = () => {
+    if (!iframe || populated) return;
+    populated = true;
+    iframe.contentWindow?.postMessage(
+      {
+        eventType: 'populateCode',
+        language: 'java',
+        files,
+      },
+      '*',
+    );
+    loading?.classList.add('hidden');
+    iframe.classList.remove('opacity-0');
+    iframe.classList.add('opacity-100');
+    if (status) {
+      status.textContent = 'Editor ready — edit code and press Run ▶';
+      status.classList.remove('hidden');
+    }
+  };
+
+  if (iframe) {
+    iframe.addEventListener('load', () => {
+      setTimeout(populateEditor, 800);
+      setTimeout(populateEditor, 2000);
+    });
+  }
+</script>
