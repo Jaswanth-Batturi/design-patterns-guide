@@ -18,7 +18,7 @@ const slugs = [
 const required = [
   'index.html',
   '404.html',
-  'og-image.png',
+  'og-image.jpg',
   ...slugs.map((s) => `patterns/${s}/index.html`),
 ];
 
