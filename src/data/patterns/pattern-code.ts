@@ -10,1445 +10,920 @@ export interface PatternCode {
   runDemo: string;
 }
 
+/** runDemo is always an exact copy of codeAfter. */
+function withDemo(codeBefore: string, codeAfter: string): PatternCode {
+  return { codeBefore, codeAfter, runDemo: codeAfter };
+}
+
 export const patternCode: Record<string, PatternCode> = {
   // Home Wi-Fi / AppConfig theme settings
-  singleton: {
-    codeBefore: `// Home Wi-Fi: every room installs its own router with its own password.
-// Here, every service does "new AppConfig()" -> multiple sources of truth.
+  singleton: withDemo(
+    `// PROBLEM: every service does "new AppConfig()" -> its own copy.
+// Like every room installing its own Wi-Fi router with its own password.
 class AppConfig {
     String theme = "light";
-    String apiUrl = "https://staging.example.com";
 }
 
 class ThemeService {
-    void apply() {
-        AppConfig config = new AppConfig();          // router #1
+    void apply(AppConfig config) {
         config.theme = "dark";
         System.out.println("ThemeService set theme: " + config.theme);
     }
 }
 
 class ApiService {
-    void call() {
-        AppConfig config = new AppConfig();          // router #2 (different password!)
+    void render(AppConfig config) {
         System.out.println("ApiService sees theme: " + config.theme);
     }
 }
 
 public class SingletonProblemDemo {
     public static void main(String[] args) {
-        new ThemeService().apply();                  // sets dark on its own copy
-        new ApiService().call();                     // still "light" — different object
-        // Two objects in memory, settings disagree — like two routers in one home.
+        new ThemeService().apply(new AppConfig());   // router #1: set dark
+        new ApiService().render(new AppConfig());    // router #2: still light!
+        // Two objects, two "sources of truth" -> theme mismatch.
     }
 }`,
-    codeAfter: `// Home Wi-Fi: ONE router, one SSID. Every device joins the same network.
-// getInstance() is the only door to the shared AppConfig.
+    `// FIX: ONE router, one SSID. getInstance() is the only door to AppConfig.
 class AppConfig {
     private static AppConfig instance;
     private String theme = "light";
 
     private AppConfig() {}                            // no "new" from outside
 
-    static AppConfig getInstance() {                 // the single Wi-Fi network
+    static AppConfig getInstance() {                  // the single shared network
         if (instance == null) instance = new AppConfig();
         return instance;
     }
-    void setTheme(String theme) {
-        this.theme = theme;
-        System.out.println("Theme is now: " + theme);
-    }
+    void setTheme(String theme) { this.theme = theme; }
     String getTheme() { return theme; }
+}
+
+class ThemeService {
+    void apply() {
+        AppConfig.getInstance().setTheme("dark");
+        System.out.println("ThemeService set theme: dark");
+    }
+}
+
+class ApiService {
+    void render() {
+        System.out.println("ApiService sees theme: " + AppConfig.getInstance().getTheme());
+    }
 }
 
 public class SingletonDemo {
     public static void main(String[] args) {
-        AppConfig a = AppConfig.getInstance();
-        AppConfig b = AppConfig.getInstance();
-        a.setTheme("dark");
-        System.out.println("b sees theme: " + b.getTheme());   // dark
-        System.out.println("Same object? " + (a == b));         // true
+        new ThemeService().apply();                   // sets dark on shared config
+        new ApiService().render();                    // reads "dark" — same object
+        System.out.println("Same instance? " +
+            (AppConfig.getInstance() == AppConfig.getInstance()));
     }
-}`,
-    runDemo: `// Home Wi-Fi: ONE router, one SSID. Every device joins the same network.
-// getInstance() is the only door to the shared AppConfig.
-class AppConfig {
-    private static AppConfig instance;
-    private String theme = "light";
+}`
+  ),
 
-    private AppConfig() {}                            // no "new" from outside
+  // Coffee shop ordering
+  factory: withDemo(
+    `// PROBLEM: every customer repeats the same if/else in the kitchen.
+class Espresso { Espresso() { System.out.println("Made an Espresso"); } }
+class Latte    { Latte()    { System.out.println("Made a Latte");    } }
 
-    static AppConfig getInstance() {                 // the single Wi-Fi network
-        if (instance == null) instance = new AppConfig();
-        return instance;
-    }
-    void setTheme(String theme) {
-        this.theme = theme;
-        System.out.println("Theme is now: " + theme);
-    }
-    String getTheme() { return theme; }
-}
-
-public class SingletonDemo {
-    public static void main(String[] args) {
-        AppConfig a = AppConfig.getInstance();
-        AppConfig b = AppConfig.getInstance();
-        a.setTheme("dark");
-        System.out.println("b sees theme: " + b.getTheme());   // dark
-        System.out.println("Same object? " + (a == b));         // true
-    }
-}`,
-  },
-
-  // Coffee shop order (latte / espresso)
-  factory: {
-    codeBefore: `// Coffee shop: customers walk into the kitchen and follow recipes themselves.
-// The Customer class branches on drink type — the counter has no control.
 class Customer {
     void order(String type) {
-        if (type.equals("latte")) {
-            System.out.println("Grinding beans...");
-            System.out.println("Steaming milk...");
-            System.out.println("Serving a Latte");
-        } else if (type.equals("espresso")) {
-            System.out.println("Grinding beans...");
-            System.out.println("Pulling a shot...");
-            System.out.println("Serving an Espresso");
+        // Kitchen logic leaks into every caller.
+        if (type.equals("espresso")) {
+            new Espresso();
+        } else if (type.equals("latte")) {
+            new Latte();
+        } else {
+            System.out.println("Unknown drink: " + type);
         }
-        // New drink? Edit this same if/else chain every time.
     }
 }
 
-public class FactoryProblemDemo {
+public class CoffeeProblemDemo {
     public static void main(String[] args) {
-        Customer customer = new Customer();
-        customer.order("latte");
-        customer.order("espresso");
+        new Customer().order("espresso");
+        new Customer().order("latte");
+        // Add a new drink -> edit if/else in EVERY customer.
     }
 }`,
-    codeAfter: `// Coffee shop: you say "latte" at the counter; the barista builds the drink.
-// A factory method picks the right Coffee subclass behind the counter.
-interface Coffee {
-    void prepare();
-}
-
-class Latte implements Coffee {
-    public void prepare() { System.out.println("Steaming milk for a Latte"); }
-}
+    `// FIX: the CoffeeShop factory decides which object to build.
+interface Coffee { void prepare(); }
 
 class Espresso implements Coffee {
-    public void prepare() { System.out.println("Pulling a shot of Espresso"); }
+    public void prepare() { System.out.println("Made an Espresso"); }
+}
+class Latte implements Coffee {
+    public void prepare() { System.out.println("Made a Latte"); }
 }
 
-class CoffeeShop {                                   // the counter
-    Coffee order(String type) {                      // factory method
+class CoffeeShop {
+    static Coffee order(String type) {              // one place to grow
         switch (type) {
-            case "latte":    return new Latte();
             case "espresso": return new Espresso();
+            case "latte":    return new Latte();
             default: throw new IllegalArgumentException("Unknown drink: " + type);
         }
     }
 }
 
-public class FactoryDemo {
+public class CoffeeShopDemo {
     public static void main(String[] args) {
-        CoffeeShop shop = new CoffeeShop();
-        shop.order("latte").prepare();
-        shop.order("espresso").prepare();
+        CoffeeShop.order("espresso").prepare();
+        CoffeeShop.order("latte").prepare();
+        // Customers just ask; the shop knows how to make it.
+    }
+}`
+  ),
+
+  // Furniture sets that must match
+  'abstract-factory': withDemo(
+    `// PROBLEM: nothing forces matching styles -> mismatched room.
+class ScandinavianSofa { void show() { System.out.println("Scandinavian sofa"); } }
+class ModernLamp      { void show() { System.out.println("Modern lamp");        } }
+
+public class FurnitureProblemDemo {
+    public static void main(String[] args) {
+        // Hand-picking pieces: easy to mix styles by accident.
+        ScandinavianSofa sofa = new ScandinavianSofa();
+        ModernLamp lamp = new ModernLamp();          // oops, wrong style!
+        sofa.show();
+        lamp.show();
+        System.out.println("Room looks mismatched: Scandinavian + Modern");
     }
 }`,
-    runDemo: `// Coffee shop: you say "latte" at the counter; the barista builds the drink.
-// A factory method picks the right Coffee subclass behind the counter.
-interface Coffee {
-    void prepare();
+    `// FIX: a factory makes a whole MATCHED set (sofa + lamp) together.
+interface Sofa { void show(); }
+interface Lamp { void show(); }
+
+class ScandinavianSofa implements Sofa { public void show() { System.out.println("Scandinavian sofa"); } }
+class ScandinavianLamp implements Lamp { public void show() { System.out.println("Scandinavian lamp"); } }
+class ModernSofa       implements Sofa { public void show() { System.out.println("Modern sofa"); } }
+class ModernLamp       implements Lamp { public void show() { System.out.println("Modern lamp"); } }
+
+interface FurnitureFactory { Sofa createSofa(); Lamp createLamp(); }
+
+class ScandinavianFactory implements FurnitureFactory {
+    public Sofa createSofa() { return new ScandinavianSofa(); }
+    public Lamp createLamp() { return new ScandinavianLamp(); }
+}
+class ModernFactory implements FurnitureFactory {
+    public Sofa createSofa() { return new ModernSofa(); }
+    public Lamp createLamp() { return new ModernLamp(); }
 }
 
-class Latte implements Coffee {
-    public void prepare() { System.out.println("Steaming milk for a Latte"); }
-}
-
-class Espresso implements Coffee {
-    public void prepare() { System.out.println("Pulling a shot of Espresso"); }
-}
-
-class CoffeeShop {                                   // the counter
-    Coffee order(String type) {                      // factory method
-        switch (type) {
-            case "latte":    return new Latte();
-            case "espresso": return new Espresso();
-            default: throw new IllegalArgumentException("Unknown drink: " + type);
-        }
+public class FurnitureDemo {
+    static void furnishRoom(FurnitureFactory factory) {
+        factory.createSofa().show();
+        factory.createLamp().show();
     }
-}
-
-public class FactoryDemo {
     public static void main(String[] args) {
-        CoffeeShop shop = new CoffeeShop();
-        shop.order("latte").prepare();
-        shop.order("espresso").prepare();
+        System.out.println("-- Scandinavian room --");
+        furnishRoom(new ScandinavianFactory());       // always matches
+        System.out.println("-- Modern room --");
+        furnishRoom(new ModernFactory());
     }
-}`,
-  },
+}`
+  ),
 
-  // Matched furniture set -> Mac vs Win UI kit
-  'abstract-factory': {
-    codeBefore: `// Furniture set: mixing a Mac button with a Windows checkbox in one room.
-// Widgets are created independently, so families get mismatched.
-class MacButton { void paint() { System.out.println("[Mac] Button"); } }
-class WinCheckbox { void paint() { System.out.println("[Win] Checkbox"); } }
-
-class Screen {
-    void render() {
-        MacButton button = new MacButton();          // Mac style
-        WinCheckbox checkbox = new WinCheckbox();    // Windows style — clash!
-        button.paint();
-        checkbox.paint();
-        // Switching the whole theme means hunting down every "new" call.
-    }
-}
-
-public class AbstractFactoryProblemDemo {
-    public static void main(String[] args) {
-        new Screen().render();                       // mismatched family on screen
-    }
-}`,
-    codeAfter: `// Furniture set: pick one kit; the factory delivers a matched button + checkbox.
-interface Button { void paint(); }
-interface Checkbox { void paint(); }
-
-class MacButton implements Button { public void paint() { System.out.println("[Mac] Button"); } }
-class MacCheckbox implements Checkbox { public void paint() { System.out.println("[Mac] Checkbox"); } }
-class WinButton implements Button { public void paint() { System.out.println("[Win] Button"); } }
-class WinCheckbox implements Checkbox { public void paint() { System.out.println("[Win] Checkbox"); } }
-
-interface UIFactory {                                // the showroom kit
-    Button createButton();
-    Checkbox createCheckbox();
-}
-class MacUIFactory implements UIFactory {
-    public Button createButton() { return new MacButton(); }
-    public Checkbox createCheckbox() { return new MacCheckbox(); }
-}
-class WinUIFactory implements UIFactory {
-    public Button createButton() { return new WinButton(); }
-    public Checkbox createCheckbox() { return new WinCheckbox(); }
-}
-
-class Screen {
-    void render(UIFactory factory) {                 // one kit -> matched family
-        factory.createButton().paint();
-        factory.createCheckbox().paint();
-    }
-}
-
-public class AbstractFactoryDemo {
-    public static void main(String[] args) {
-        Screen screen = new Screen();
-        screen.render(new MacUIFactory());
-        screen.render(new WinUIFactory());
-    }
-}`,
-    runDemo: `// Furniture set: pick one kit; the factory delivers a matched button + checkbox.
-interface Button { void paint(); }
-interface Checkbox { void paint(); }
-
-class MacButton implements Button { public void paint() { System.out.println("[Mac] Button"); } }
-class MacCheckbox implements Checkbox { public void paint() { System.out.println("[Mac] Checkbox"); } }
-class WinButton implements Button { public void paint() { System.out.println("[Win] Button"); } }
-class WinCheckbox implements Checkbox { public void paint() { System.out.println("[Win] Checkbox"); } }
-
-interface UIFactory {                                // the showroom kit
-    Button createButton();
-    Checkbox createCheckbox();
-}
-class MacUIFactory implements UIFactory {
-    public Button createButton() { return new MacButton(); }
-    public Checkbox createCheckbox() { return new MacCheckbox(); }
-}
-class WinUIFactory implements UIFactory {
-    public Button createButton() { return new WinButton(); }
-    public Checkbox createCheckbox() { return new WinCheckbox(); }
-}
-
-class Screen {
-    void render(UIFactory factory) {                 // one kit -> matched family
-        factory.createButton().paint();
-        factory.createCheckbox().paint();
-    }
-}
-
-public class AbstractFactoryDemo {
-    public static void main(String[] args) {
-        Screen screen = new Screen();
-        screen.render(new MacUIFactory());
-        screen.render(new WinUIFactory());
-    }
-}`,
-  },
-
-  // Burrito counter
-  builder: {
-    codeBefore: `// Burrito counter: everything dumped into one bag via a giant constructor.
+  // Burrito builder
+  builder: withDemo(
+    `// PROBLEM: a giant constructor with a wall of arguments.
 class Burrito {
-    // rice, beans, protein, cheese, salsa, guac... all positional, easy to mix up.
-    Burrito(boolean rice, boolean beans, String protein,
-            boolean cheese, boolean salsa, boolean guac) {
-        System.out.println("Burrito: rice=" + rice + ", beans=" + beans +
-            ", protein=" + protein + ", cheese=" + cheese +
-            ", salsa=" + salsa + ", guac=" + guac);
+    Burrito(String size, boolean rice, boolean beans, boolean cheese,
+            boolean salsa, boolean guac, boolean sourCream) {
+        System.out.println("Burrito: " + size +
+            " rice=" + rice + " beans=" + beans + " cheese=" + cheese +
+            " salsa=" + salsa + " guac=" + guac + " sourCream=" + sourCream);
     }
 }
 
-public class BuilderProblemDemo {
+public class BurritoProblemDemo {
     public static void main(String[] args) {
-        // Which boolean was cheese again? No validation, no readability.
-        new Burrito(true, true, "carnitas", true, false, true);
+        // Which boolean is which? Easy to swap salsa and guac by mistake.
+        new Burrito("large", true, true, false, true, true, false);
     }
 }`,
-    codeAfter: `// Burrito counter: add layers fluently, then build() returns a finished burrito.
+    `// FIX: a fluent Builder — name each choice, add only what you want.
 class Burrito {
-    private final boolean rice, beans, cheese;
-    private final String protein;
-
-    private Burrito(Builder b) {
-        this.rice = b.rice; this.beans = b.beans;
-        this.protein = b.protein; this.cheese = b.cheese;
-    }
-    void describe() {
-        System.out.println("Burrito with rice=" + rice + ", beans=" + beans +
-            ", protein=" + protein + ", cheese=" + cheese);
-    }
+    private final String description;
+    private Burrito(String description) { this.description = description; }
+    void print() { System.out.println(description); }
 
     static class Builder {
-        boolean rice, beans, cheese;
-        String protein = "none";
-        Builder rice() { this.rice = true; return this; }
-        Builder beans() { this.beans = true; return this; }
-        Builder protein(String p) { this.protein = p; return this; }
-        Builder cheese() { this.cheese = true; return this; }
-        Burrito build() {                            // validate before serving
-            if (protein.equals("none"))
-                throw new IllegalStateException("Pick a protein!");
-            return new Burrito(this);
-        }
+        private String size = "regular";
+        private StringBuilder items = new StringBuilder();
+        Builder size(String s)   { this.size = s; return this; }
+        Builder add(String item) { items.append(item).append(" "); return this; }
+        Burrito build() { return new Burrito("Burrito(" + size + "): " + items.toString().trim()); }
     }
 }
 
-public class BuilderDemo {
+public class BurritoDemo {
     public static void main(String[] args) {
-        new Burrito.Builder().rice().beans().protein("carnitas").cheese().build().describe();
+        Burrito b = new Burrito.Builder()
+            .size("large")
+            .add("rice").add("beans").add("cheese").add("guac")
+            .build();                                  // readable, order-proof
+        b.print();
     }
-}`,
-    runDemo: `// Burrito counter: add layers fluently, then build() returns a finished burrito.
-class Burrito {
-    private final boolean rice, beans, cheese;
-    private final String protein;
+}`
+  ),
 
-    private Burrito(Builder b) {
-        this.rice = b.rice; this.beans = b.beans;
-        this.protein = b.protein; this.cheese = b.cheese;
-    }
-    void describe() {
-        System.out.println("Burrito with rice=" + rice + ", beans=" + beans +
-            ", protein=" + protein + ", cheese=" + cheese);
-    }
-
-    static class Builder {
-        boolean rice, beans, cheese;
-        String protein = "none";
-        Builder rice() { this.rice = true; return this; }
-        Builder beans() { this.beans = true; return this; }
-        Builder protein(String p) { this.protein = p; return this; }
-        Builder cheese() { this.cheese = true; return this; }
-        Burrito build() {                            // validate before serving
-            if (protein.equals("none"))
-                throw new IllegalStateException("Pick a protein!");
-            return new Burrito(this);
-        }
-    }
-}
-
-public class BuilderDemo {
-    public static void main(String[] args) {
-        new Burrito.Builder().rice().beans().protein("carnitas").cheese().build().describe();
-    }
-}`,
-  },
-
-  // Duplicate Google Doc / document clone
-  prototype: {
-    codeBefore: `// Google Doc: rebuilding a document by copying every field by hand.
-import java.util.*;
-
+  // Google Doc copy
+  prototype: withDemo(
+    `// PROBLEM: copying a doc by hand forgets fields -> tags lost.
 class Document {
     String title;
     String body;
-    List<String> tags = new ArrayList<>();
+    String tags;
+    Document(String title, String body, String tags) {
+        this.title = title; this.body = body; this.tags = tags;
+    }
+    void print() { System.out.println(title + " | " + body + " | tags=" + tags); }
 }
 
-public class PrototypeProblemDemo {
-    static Document duplicate(Document original) {
-        Document copy = new Document();
-        copy.title = original.title;                 // forget one field...
-        copy.body = original.body;
-        // Oops: forgot to copy tags -> the "duplicate" loses nested state.
-        return copy;
-    }
+public class DocProblemDemo {
     public static void main(String[] args) {
-        Document template = new Document();
-        template.title = "Client Template";
-        template.tags.add("meeting");
-
-        Document copy = duplicate(template);
-        System.out.println("Copy title: " + copy.title);
-        System.out.println("Copy tags: " + copy.tags + " (lost!)");
+        Document original = new Document("Q3 Plan", "content...", "work,urgent");
+        // Manual "copy": someone forgets to carry over the tags.
+        Document copy = new Document(original.title + " (copy)", original.body, null);
+        original.print();
+        copy.print();                                  // tags=null — data lost!
     }
 }`,
-    codeAfter: `// Google Doc: hit Duplicate; copy() copies the whole object graph in one call.
-import java.util.*;
-
+    `// FIX: the object knows how to clone itself — nothing forgotten.
 class Document {
     String title;
     String body;
-    List<String> tags = new ArrayList<>();
+    String tags;
+    Document(String title, String body, String tags) {
+        this.title = title; this.body = body; this.tags = tags;
+    }
+    Document copy() {                                  // clones every field
+        return new Document(title + " (copy)", body, tags);
+    }
+    void print() { System.out.println(title + " | " + body + " | tags=" + tags); }
+}
 
-    Document copy() {                                // one faithful copy
-        Document c = new Document();
-        c.title = this.title;
-        c.body = this.body;
-        c.tags = new ArrayList<>(this.tags);         // deep-copy nested list
-        return c;
+public class DocDemo {
+    public static void main(String[] args) {
+        Document original = new Document("Q3 Plan", "content...", "work,urgent");
+        Document copy = original.copy();               // tags carried automatically
+        original.print();
+        copy.print();
+    }
+}`
+  ),
+
+  // USB-C dongle -> HDMI projector
+  adapter: withDemo(
+    `// PROBLEM: the projector speaks HDMI; the laptop only has USB-C.
+// Every caller writes the same glue to bridge the mismatch.
+class HdmiProjector {
+    void displayHdmi(String hdmiSignal) {
+        System.out.println("Projector shows: " + hdmiSignal);
     }
 }
 
-public class PrototypeDemo {
-    public static void main(String[] args) {
-        Document template = new Document();
-        template.title = "Client Template";
-        template.tags.add("meeting");
+class Laptop {
+    // Laptop outputs a USB-C signal but must translate it inline, everywhere.
+    void present(String usbcSignal, HdmiProjector projector) {
+        String hdmiSignal = "HDMI[" + usbcSignal + "]";   // glue code repeated
+        projector.displayHdmi(hdmiSignal);
+    }
+}
 
-        Document copy = template.copy();             // Duplicate
-        copy.title = "Acme Standup";                 // edit only the copy
-        System.out.println("Template: " + template.title + " " + template.tags);
-        System.out.println("Copy: " + copy.title + " " + copy.tags);
+public class DongleProblemDemo {
+    public static void main(String[] args) {
+        HdmiProjector projector = new HdmiProjector();
+        new Laptop().present("slides.usbc", projector);   // conversion leaks here
+        new Laptop().present("video.usbc", projector);    // ...and here again
     }
 }`,
-    runDemo: `// Google Doc: hit Duplicate; copy() copies the whole object graph in one call.
-import java.util.*;
+    `// FIX: a USB-C -> HDMI adapter wraps the projector once.
+interface UsbCDisplay { void display(String usbcSignal); }   // what the laptop expects
 
-class Document {
-    String title;
-    String body;
-    List<String> tags = new ArrayList<>();
-
-    Document copy() {                                // one faithful copy
-        Document c = new Document();
-        c.title = this.title;
-        c.body = this.body;
-        c.tags = new ArrayList<>(this.tags);         // deep-copy nested list
-        return c;
+class HdmiProjector {                                        // the incompatible device
+    void displayHdmi(String hdmiSignal) {
+        System.out.println("Projector shows: " + hdmiSignal);
     }
 }
 
-public class PrototypeDemo {
-    public static void main(String[] args) {
-        Document template = new Document();
-        template.title = "Client Template";
-        template.tags.add("meeting");
+class UsbCtoHdmiAdapter implements UsbCDisplay {
+    private final HdmiProjector projector;
+    UsbCtoHdmiAdapter(HdmiProjector projector) { this.projector = projector; }
+    public void display(String usbcSignal) {                 // conversion in one place
+        projector.displayHdmi("HDMI[" + usbcSignal + "]");
+    }
+}
 
-        Document copy = template.copy();             // Duplicate
-        copy.title = "Acme Standup";                 // edit only the copy
-        System.out.println("Template: " + template.title + " " + template.tags);
-        System.out.println("Copy: " + copy.title + " " + copy.tags);
+class Laptop {
+    void present(String usbcSignal, UsbCDisplay display) {
+        display.display(usbcSignal);                         // no glue in the caller
+    }
+}
+
+public class DongleDemo {
+    public static void main(String[] args) {
+        UsbCDisplay display = new UsbCtoHdmiAdapter(new HdmiProjector());
+        new Laptop().present("slides.usbc", display);
+        new Laptop().present("video.usbc", display);
+    }
+}`
+  ),
+
+  // TV remote: class explosion
+  bridge: withDemo(
+    `// PROBLEM: class explosion. Each remote type x each brand = a new class.
+// 2 remote types (Basic, Advanced) x 2 brands (Sony, Samsung) = 4 classes.
+class SonyBasicRemote     { void power() { System.out.println("Sony: power toggled"); } }
+class SonyAdvancedRemote  { void power() { System.out.println("Sony: power toggled"); }
+                            void mute()  { System.out.println("Sony: muted"); } }
+class SamsungBasicRemote  { void power() { System.out.println("Samsung: power toggled"); } }
+class SamsungAdvancedRemote { void power() { System.out.println("Samsung: power toggled"); }
+                              void mute()  { System.out.println("Samsung: muted"); } }
+
+public class RemoteProblemDemo {
+    public static void main(String[] args) {
+        new SonyBasicRemote().power();
+        new SamsungAdvancedRemote().mute();
+        int remoteTypes = 2, brands = 2;
+        System.out.println("Classes needed = " + (remoteTypes * brands)); // 4
+        System.out.println("Add LG -> now " + (remoteTypes * 3) + " classes");
     }
 }`,
-  },
-
-  // USB-C to HDMI dongle / legacy payNow -> charge
-  adapter: {
-    codeBefore: `// USB-C -> HDMI: checkout jams the modern call straight into the legacy plug.
-class LegacyPaymentService {                         // HDMI-only projector
-    void payNow(String currency, long cents) {
-        System.out.println("Legacy paid " + currency + " " + (cents / 100.0));
-    }
-}
-
-class Checkout {
-    void pay(double amount) {
-        LegacyPaymentService legacy = new LegacyPaymentService();
-        // Odd conversion + param order copy-pasted into every caller.
-        legacy.payNow("USD", (long) (amount * 100));
-    }
-}
-
-public class AdapterProblemDemo {
-    public static void main(String[] args) {
-        new Checkout().pay(49.99);
-    }
-}`,
-    codeAfter: `// USB-C -> HDMI dongle: an adapter translates charge() into legacy payNow().
-interface PaymentGateway {                            // the modern USB-C shape
-    void charge(double amount);
-}
-
-class LegacyPaymentService {                          // untouched HDMI projector
-    void payNow(String currency, long cents) {
-        System.out.println("Legacy paid " + currency + " " + (cents / 100.0));
-    }
-}
-
-class StripeAdapter implements PaymentGateway {       // the dongle
-    private final LegacyPaymentService legacy = new LegacyPaymentService();
-    public void charge(double amount) {
-        legacy.payNow("USD", (long) (amount * 100)); // translation in ONE place
-    }
-}
-
-class Checkout {
-    private final PaymentGateway gateway;
-    Checkout(PaymentGateway gateway) { this.gateway = gateway; }
-    void pay(double amount) { gateway.charge(amount); } // only sees charge()
-}
-
-public class AdapterDemo {
-    public static void main(String[] args) {
-        Checkout checkout = new Checkout(new StripeAdapter());
-        checkout.pay(49.99);
-    }
-}`,
-    runDemo: `// USB-C -> HDMI dongle: an adapter translates charge() into legacy payNow().
-interface PaymentGateway {                            // the modern USB-C shape
-    void charge(double amount);
-}
-
-class LegacyPaymentService {                          // untouched HDMI projector
-    void payNow(String currency, long cents) {
-        System.out.println("Legacy paid " + currency + " " + (cents / 100.0));
-    }
-}
-
-class StripeAdapter implements PaymentGateway {       // the dongle
-    private final LegacyPaymentService legacy = new LegacyPaymentService();
-    public void charge(double amount) {
-        legacy.payNow("USD", (long) (amount * 100)); // translation in ONE place
-    }
-}
-
-class Checkout {
-    private final PaymentGateway gateway;
-    Checkout(PaymentGateway gateway) { this.gateway = gateway; }
-    void pay(double amount) { gateway.charge(amount); } // only sees charge()
-}
-
-public class AdapterDemo {
-    public static void main(String[] args) {
-        Checkout checkout = new Checkout(new StripeAdapter());
-        checkout.pay(49.99);
-    }
-}`,
-  },
-
-  // TV remote + brands
-  bridge: {
-    codeBefore: `// TV remote welded to a brand: one remote class per TV brand -> class explosion.
-class SonyRemote {
-    void power() { System.out.println("Sony TV: power toggled"); }
-}
-class SamsungRemote {
-    void power() { System.out.println("Samsung TV: power toggled"); }
-}
-
-public class BridgeProblemDemo {
-    public static void main(String[] args) {
-        new SonyRemote().power();
-        new SamsungRemote().power();
-        // Add a "mute" button? Edit BOTH remotes. Add LG? Another whole class.
-    }
-}`,
-    codeAfter: `// Bridge: the remote (abstraction) holds a Device (implementation) reference.
-interface Device {                                    // TV brand internals
+    `// FIX: split the two axes. Remote (abstraction) bridges to TV (implementation).
+interface TV {                                       // implementation axis: brands
     void on();
+    void off();
 }
-class SonyTV implements Device { public void on() { System.out.println("Sony TV: on"); } }
-class SamsungTV implements Device { public void on() { System.out.println("Samsung TV: on"); } }
+class SonyTV    implements TV { public void on() { System.out.println("Sony TV on"); }
+                                public void off() { System.out.println("Sony TV off"); } }
+class SamsungTV implements TV { public void on() { System.out.println("Samsung TV on"); }
+                                public void off() { System.out.println("Samsung TV off"); } }
+class LGTV      implements TV { public void on() { System.out.println("LG TV on"); }
+                                public void off() { System.out.println("LG TV off"); } }
 
-class Remote {                                        // same buttons for any TV
-    protected final Device device;
-    Remote(Device device) { this.device = device; }
-    void power() { device.on(); }                     // delegate to the brand
+class Remote {                                       // abstraction axis: remote types
+    protected final TV tv;
+    Remote(TV tv) { this.tv = tv; }
+    void power() { tv.on(); }
+}
+class AdvancedRemote extends Remote {                // extends without touching brands
+    AdvancedRemote(TV tv) { super(tv); }
+    void mute() { tv.off(); System.out.println("(muted)"); }
 }
 
-public class BridgeDemo {
+public class RemoteDemo {
     public static void main(String[] args) {
         new Remote(new SonyTV()).power();
-        new Remote(new SamsungTV()).power();          // swap the device, same remote
+        new AdvancedRemote(new SamsungTV()).mute();
+        new Remote(new LGTV()).power();              // adding LG = ONE class only
+        System.out.println("Classes = 3 brands + 2 remotes = 5, not 6");
     }
-}`,
-    runDemo: `// Bridge: the remote (abstraction) holds a Device (implementation) reference.
-interface Device {                                    // TV brand internals
-    void on();
-}
-class SonyTV implements Device { public void on() { System.out.println("Sony TV: on"); } }
-class SamsungTV implements Device { public void on() { System.out.println("Samsung TV: on"); } }
+}`
+  ),
 
-class Remote {                                        // same buttons for any TV
-    protected final Device device;
-    Remote(Device device) { this.device = device; }
-    void power() { device.on(); }                     // delegate to the brand
-}
-
-public class BridgeDemo {
-    public static void main(String[] args) {
-        new Remote(new SonyTV()).power();
-        new Remote(new SamsungTV()).power();          // swap the device, same remote
-    }
-}`,
-  },
-
-  // Folder tree / file system
-  composite: {
-    codeBefore: `// File system: files and folders have different APIs, so callers branch on type.
+  // Project folder tree
+  composite: withDemo(
+    `// PROBLEM: every operation branches on instanceof File vs Folder.
 import java.util.*;
 
-class FileItem { String name; FileItem(String n) { name = n; } }
-class FolderItem {
-    String name;
-    List<Object> children = new ArrayList<>();
-    FolderItem(String n) { name = n; }
-}
+class File   { String name; File(String n){ name = n; } }
+class Folder { String name; List<Object> children = new ArrayList<>(); Folder(String n){ name = n; } }
 
-public class CompositeProblemDemo {
-    static void show(Object node, String indent) {
-        if (node instanceof FileItem) {              // branch #1
-            System.out.println(indent + ((FileItem) node).name);
-        } else if (node instanceof FolderItem) {     // branch #2
-            FolderItem f = (FolderItem) node;
-            System.out.println(indent + f.name + "/");
-            for (Object child : f.children) show(child, indent + "  ");
+public class ProjectProblemDemo {
+    static int size(Object node) {
+        if (node instanceof File) {
+            return 1;
+        } else if (node instanceof Folder) {          // must handle each type
+            int total = 0;
+            for (Object child : ((Folder) node).children) {
+                total += size(child);                  // recursion + instanceof everywhere
+            }
+            return total;
         }
-        // Delete, rename, size... each repeats this isFolder() branching.
+        return 0;
     }
     public static void main(String[] args) {
-        FolderItem root = new FolderItem("Projects");
-        root.children.add(new FileItem("readme.pdf"));
-        FolderItem assets = new FolderItem("assets");
-        assets.children.add(new FileItem("logo.png"));
-        root.children.add(assets);
-        show(root, "");
+        Folder root = new Folder("project");
+        root.children.add(new File("readme.md"));
+        Folder src = new Folder("src");
+        src.children.add(new File("main.java"));
+        root.children.add(src);
+        System.out.println("Files: " + size(root));    // add ops -> more instanceof
     }
 }`,
-    codeAfter: `// File system: File and Folder share one interface; show() works on both.
+    `// FIX: File and Folder share one interface; a folder delegates to children.
 import java.util.*;
 
-interface Node {
-    void show(String indent);
-}
+interface Node { int size(); }                         // leaf and branch look the same
 
-class FileNode implements Node {
+class File implements Node {
     private final String name;
-    FileNode(String name) { this.name = name; }
-    public void show(String indent) { System.out.println(indent + name); }
+    File(String name) { this.name = name; }
+    public int size() { return 1; }
 }
 
-class FolderNode implements Node {                    // container is also a Node
+class Folder implements Node {
     private final String name;
     private final List<Node> children = new ArrayList<>();
-    FolderNode(String name) { this.name = name; }
-    FolderNode add(Node child) { children.add(child); return this; }
-    public void show(String indent) {
-        System.out.println(indent + name + "/");
-        for (Node child : children) child.show(indent + "  "); // recurse
+    Folder(String name) { this.name = name; }
+    Folder add(Node node) { children.add(node); return this; }
+    public int size() {                                // no instanceof — just ask
+        int total = 0;
+        for (Node child : children) total += child.size();
+        return total;
     }
 }
 
-public class CompositeDemo {
+public class ProjectDemo {
     public static void main(String[] args) {
-        FolderNode root = new FolderNode("Projects")
-            .add(new FileNode("readme.pdf"))
-            .add(new FolderNode("assets").add(new FileNode("logo.png")));
-        root.show("");                               // one call walks the tree
+        Folder root = new Folder("project")
+            .add(new File("readme.md"))
+            .add(new Folder("src").add(new File("main.java")));
+        System.out.println("Files: " + root.size());  // whole tree, one call
+    }
+}`
+  ),
+
+  // Insurance add-ons
+  decorator: withDemo(
+    `// PROBLEM: a subclass for every combination of add-ons.
+class BasicHealth { double cost() { return 100; } }
+class HealthWithDental extends BasicHealth {
+    double cost() { return super.cost() + 20; }
+}
+class HealthDentalVision extends HealthWithDental {    // and Health+Vision? +Vision+Dental?
+    double cost() { return super.cost() + 15; }
+}
+
+public class InsuranceProblemDemo {
+    public static void main(String[] args) {
+        System.out.println("Basic: " + new BasicHealth().cost());
+        System.out.println("+Dental: " + new HealthWithDental().cost());
+        System.out.println("+Dental+Vision: " + new HealthDentalVision().cost());
+        // N add-ons -> 2^N subclasses. Combinatorial explosion.
     }
 }`,
-    runDemo: `// File system: File and Folder share one interface; show() works on both.
-import java.util.*;
+    `// FIX: stack add-on decorators onto a base policy at runtime.
+interface Policy { double cost(); String describe(); }
 
-interface Node {
-    void show(String indent);
+class BasicHealth implements Policy {
+    public double cost() { return 100; }
+    public String describe() { return "Basic health"; }
 }
 
-class FileNode implements Node {
-    private final String name;
-    FileNode(String name) { this.name = name; }
-    public void show(String indent) { System.out.println(indent + name); }
+abstract class AddonDecorator implements Policy {
+    protected final Policy wrapped;
+    AddonDecorator(Policy wrapped) { this.wrapped = wrapped; }
 }
 
-class FolderNode implements Node {                    // container is also a Node
-    private final String name;
-    private final List<Node> children = new ArrayList<>();
-    FolderNode(String name) { this.name = name; }
-    FolderNode add(Node child) { children.add(child); return this; }
-    public void show(String indent) {
-        System.out.println(indent + name + "/");
-        for (Node child : children) child.show(indent + "  "); // recurse
-    }
+class Dental extends AddonDecorator {
+    Dental(Policy p) { super(p); }
+    public double cost() { return wrapped.cost() + 20; }
+    public String describe() { return wrapped.describe() + " + dental"; }
+}
+class Vision extends AddonDecorator {
+    Vision(Policy p) { super(p); }
+    public double cost() { return wrapped.cost() + 15; }
+    public String describe() { return wrapped.describe() + " + vision"; }
 }
 
-public class CompositeDemo {
+public class InsuranceDemo {
     public static void main(String[] args) {
-        FolderNode root = new FolderNode("Projects")
-            .add(new FileNode("readme.pdf"))
-            .add(new FolderNode("assets").add(new FileNode("logo.png")));
-        root.show("");                               // one call walks the tree
+        Policy plan = new Vision(new Dental(new BasicHealth())); // mix freely
+        System.out.println(plan.describe() + " = " + plan.cost());
+    }
+}`
+  ),
+
+  // Food delivery app facade
+  facade: withDemo(
+    `// PROBLEM: the UI wires together Kitchen, Payment and Delivery itself.
+class Kitchen  { void cook(String item) { System.out.println("Cooking " + item); } }
+class Payment  { boolean charge(double amt) { System.out.println("Charged $" + amt); return true; } }
+class Delivery { void dispatch(String item) { System.out.println("Rider dispatched with " + item); } }
+
+public class FoodProblemDemo {
+    public static void main(String[] args) {
+        // Every screen must know the exact sequence and all three subsystems.
+        Kitchen kitchen = new Kitchen();
+        Payment payment = new Payment();
+        Delivery delivery = new Delivery();
+
+        payment.charge(12.5);
+        kitchen.cook("Pizza");
+        delivery.dispatch("Pizza");                    // repeat this everywhere
     }
 }`,
-  },
+    `// FIX: OrderFacade exposes one placeOrder() and hides the subsystems.
+class Kitchen  { void cook(String item) { System.out.println("Cooking " + item); } }
+class Payment  { boolean charge(double amt) { System.out.println("Charged $" + amt); return true; } }
+class Delivery { void dispatch(String item) { System.out.println("Rider dispatched with " + item); } }
 
-  // Pizza toppings stack
-  decorator: {
-    codeBefore: `// Pizza toppings: a separate subclass for every combination -> explosion.
-class Pizza { String desc() { return "Pizza"; } double cost() { return 8.0; } }
-class PizzaWithCheese extends Pizza {
-    String desc() { return "Pizza + Cheese"; } double cost() { return 9.0; }
-}
-class PizzaWithCheeseAndOlives extends Pizza {
-    String desc() { return "Pizza + Cheese + Olives"; } double cost() { return 10.5; }
+class OrderFacade {
+    private final Kitchen kitchen = new Kitchen();
+    private final Payment payment = new Payment();
+    private final Delivery delivery = new Delivery();
+
+    void placeOrder(String item, double amount) {      // one simple entry point
+        if (payment.charge(amount)) {
+            kitchen.cook(item);
+            delivery.dispatch(item);
+        }
+    }
 }
 
-public class DecoratorProblemDemo {
+public class FoodDemo {
     public static void main(String[] args) {
-        Pizza p = new PizzaWithCheeseAndOlives();
-        System.out.println(p.desc() + " = $" + p.cost());
-        // Want mushrooms too? PizzaWithCheeseAndOlivesAndMushrooms... and on and on.
+        new OrderFacade().placeOrder("Pizza", 12.5);   // UI stays simple
     }
-}`,
-    codeAfter: `// Pizza toppings: wrap the base pizza with topping decorators at runtime.
-interface Pizza {
-    String desc();
-    double cost();
-}
-class PlainPizza implements Pizza {
-    public String desc() { return "Pizza"; }
-    public double cost() { return 8.0; }
-}
+}`
+  ),
 
-abstract class ToppingDecorator implements Pizza {    // shared wrapper
-    protected final Pizza inner;
-    ToppingDecorator(Pizza inner) { this.inner = inner; }
-}
-class Cheese extends ToppingDecorator {
-    Cheese(Pizza inner) { super(inner); }
-    public String desc() { return inner.desc() + " + Cheese"; }
-    public double cost() { return inner.cost() + 1.0; }
-}
-class Olives extends ToppingDecorator {
-    Olives(Pizza inner) { super(inner); }
-    public String desc() { return inner.desc() + " + Olives"; }
-    public double cost() { return inner.cost() + 1.5; }
-}
-
-public class DecoratorDemo {
-    public static void main(String[] args) {
-        Pizza pizza = new Olives(new Cheese(new PlainPizza())); // stack toppings
-        System.out.println(pizza.desc() + " = $" + pizza.cost());
-    }
-}`,
-    runDemo: `// Pizza toppings: wrap the base pizza with topping decorators at runtime.
-interface Pizza {
-    String desc();
-    double cost();
-}
-class PlainPizza implements Pizza {
-    public String desc() { return "Pizza"; }
-    public double cost() { return 8.0; }
-}
-
-abstract class ToppingDecorator implements Pizza {    // shared wrapper
-    protected final Pizza inner;
-    ToppingDecorator(Pizza inner) { this.inner = inner; }
-}
-class Cheese extends ToppingDecorator {
-    Cheese(Pizza inner) { super(inner); }
-    public String desc() { return inner.desc() + " + Cheese"; }
-    public double cost() { return inner.cost() + 1.0; }
-}
-class Olives extends ToppingDecorator {
-    Olives(Pizza inner) { super(inner); }
-    public String desc() { return inner.desc() + " + Olives"; }
-    public double cost() { return inner.cost() + 1.5; }
-}
-
-public class DecoratorDemo {
-    public static void main(String[] args) {
-        Pizza pizza = new Olives(new Cheese(new PlainPizza())); // stack toppings
-        System.out.println(pizza.desc() + " = $" + pizza.cost());
-    }
-}`,
-  },
-
-  // Home theater one button (facade)
-  facade: {
-    codeBefore: `// Home theater: the UI must call every subsystem itself to watch a movie.
-class Screen { void down() { System.out.println("Screen down"); } }
-class Projector { void on() { System.out.println("Projector on"); } }
-class SoundSystem { void surround() { System.out.println("Surround sound on"); } }
-
-public class FacadeProblemDemo {
-    public static void main(String[] args) {
-        // Every caller learns the exact order and each subsystem API.
-        new Screen().down();
-        new Projector().on();
-        new SoundSystem().surround();
-        System.out.println("Movie playing");
-    }
-}`,
-    codeAfter: `// Home theater: one "Watch movie" button. The facade coordinates subsystems.
-class Screen { void down() { System.out.println("Screen down"); } }
-class Projector { void on() { System.out.println("Projector on"); } }
-class SoundSystem { void surround() { System.out.println("Surround sound on"); } }
-
-class HomeTheaterFacade {                             // the one button
-    private final Screen screen = new Screen();
-    private final Projector projector = new Projector();
-    private final SoundSystem sound = new SoundSystem();
-
-    void watchMovie() {                               // hides the sequence
-        screen.down();
-        projector.on();
-        sound.surround();
-        System.out.println("Movie playing");
-    }
-}
-
-public class FacadeDemo {
-    public static void main(String[] args) {
-        new HomeTheaterFacade().watchMovie();         // one friendly call
-    }
-}`,
-    runDemo: `// Home theater: one "Watch movie" button. The facade coordinates subsystems.
-class Screen { void down() { System.out.println("Screen down"); } }
-class Projector { void on() { System.out.println("Projector on"); } }
-class SoundSystem { void surround() { System.out.println("Surround sound on"); } }
-
-class HomeTheaterFacade {                             // the one button
-    private final Screen screen = new Screen();
-    private final Projector projector = new Projector();
-    private final SoundSystem sound = new SoundSystem();
-
-    void watchMovie() {                               // hides the sequence
-        screen.down();
-        projector.on();
-        sound.surround();
-        System.out.println("Movie playing");
-    }
-}
-
-public class FacadeDemo {
-    public static void main(String[] args) {
-        new HomeTheaterFacade().watchMovie();         // one friendly call
-    }
-}`,
-  },
-
-  // Forest of trees sharing sprites
-  flyweight: {
-    codeBefore: `// Forest: every tree stores its own full sprite -> memory balloons.
+  // Forest of trees
+  flyweight: withDemo(
+    `// PROBLEM: every tree stores its own copy of a heavy sprite.
 import java.util.*;
 
 class Tree {
     int x, y;
-    String texture;                                  // heavy sprite bytes
-    Tree(int x, int y, String kind) {
-        this.x = x; this.y = y;
-        this.texture = "SPRITE_DATA_FOR_" + kind;    // duplicated per tree!
-    }
+    String sprite;                                     // big shared data, duplicated
+    Tree(int x, int y, String sprite) { this.x = x; this.y = y; this.sprite = sprite; }
 }
 
-public class FlyweightProblemDemo {
+public class ForestProblemDemo {
     public static void main(String[] args) {
-        List<Tree> trees = new ArrayList<>();
-        for (int i = 0; i < 10000; i++)              // 10,000 duplicate sprites
-            trees.add(new Tree(i, i, "Oak"));
-        System.out.println("Planted " + trees.size() + " trees, each with own sprite");
+        List<Tree> forest = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            forest.add(new Tree(i, i, "OAK_SPRITE_2MB")); // 5 copies of the same sprite
+        }
+        System.out.println("Trees: " + forest.size());
+        System.out.println("Sprite copies in memory: " + forest.size()); // wasteful
     }
 }`,
-    codeAfter: `// Forest: trees share one sprite per kind (intrinsic); only x/y differ (extrinsic).
+    `// FIX: share one TreeType; each tree keeps only its position.
 import java.util.*;
 
-class TreeType {                                      // shared flyweight
-    final String kind;
-    final String texture;
-    TreeType(String kind) { this.kind = kind; this.texture = "SPRITE_" + kind; }
-    void draw(int x, int y) { System.out.println("Draw " + kind + " at " + x + "," + y); }
+class TreeType {                                       // shared, heavy, immutable
+    final String sprite;
+    TreeType(String sprite) { this.sprite = sprite; }
 }
 
-class TreeFactory {                                   // cache of shared sprites
-    private static final Map<String, TreeType> pool = new HashMap<>();
-    static TreeType get(String kind) {
-        return pool.computeIfAbsent(kind, TreeType::new);
+class TreeFactory {
+    private static final Map<String, TreeType> cache = new HashMap<>();
+    static TreeType get(String name) {                 // reuse existing types
+        return cache.computeIfAbsent(name, TreeType::new);
     }
+    static int typeCount() { return cache.size(); }
 }
 
-public class FlyweightDemo {
+class Tree {
+    final int x, y;
+    final TreeType type;                               // reference, not a copy
+    Tree(int x, int y, TreeType type) { this.x = x; this.y = y; this.type = type; }
+}
+
+public class ForestDemo {
     public static void main(String[] args) {
-        TreeType a = TreeFactory.get("Oak");
-        TreeType b = TreeFactory.get("Oak");
-        a.draw(1, 1);
-        b.draw(5, 9);
-        System.out.println("Shared sprite? " + (a == b));   // true
+        List<Tree> forest = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            forest.add(new Tree(i, i, TreeFactory.get("OAK"))); // all share one type
+        }
+        System.out.println("Trees: " + forest.size());
+        System.out.println("Sprite copies in memory: " + TreeFactory.typeCount()); // 1
     }
-}`,
-    runDemo: `// Forest: trees share one sprite per kind (intrinsic); only x/y differ (extrinsic).
-import java.util.*;
+}`
+  ),
 
-class TreeType {                                      // shared flyweight
-    final String kind;
-    final String texture;
-    TreeType(String kind) { this.kind = kind; this.texture = "SPRITE_" + kind; }
-    void draw(int x, int y) { System.out.println("Draw " + kind + " at " + x + "," + y); }
-}
-
-class TreeFactory {                                   // cache of shared sprites
-    private static final Map<String, TreeType> pool = new HashMap<>();
-    static TreeType get(String kind) {
-        return pool.computeIfAbsent(kind, TreeType::new);
-    }
-}
-
-public class FlyweightDemo {
-    public static void main(String[] args) {
-        TreeType a = TreeFactory.get("Oak");
-        TreeType b = TreeFactory.get("Oak");
-        a.draw(1, 1);
-        b.draw(5, 9);
-        System.out.println("Shared sprite? " + (a == b));   // true
-    }
-}`,
-  },
-
-  // Photo gallery lazy load
-  proxy: {
-    codeBefore: `// Photo gallery: the real image loads from disk in its constructor -> eager.
+  // Netflix thumbnail lazy loading
+  proxy: withDemo(
+    `// PROBLEM: RealImage loads the file in its constructor, even if unused.
 class RealImage {
     private final String file;
     RealImage(String file) {
         this.file = file;
-        System.out.println("Loading HD image from disk: " + file); // slow, upfront
+        System.out.println("Loading heavy image from disk: " + file); // eager!
     }
-    void display() { System.out.println("Showing " + file); }
+    void display() { System.out.println("Displaying " + file); }
 }
 
-public class ProxyProblemDemo {
+public class NetflixProblemDemo {
     public static void main(String[] args) {
-        // Every thumbnail loads full HD even if the user never views it.
-        RealImage a = new RealImage("beach.jpg");
-        RealImage b = new RealImage("hills.jpg");    // loaded even though unused
-        a.display();
+        // Building the gallery loads EVERY thumbnail up front...
+        RealImage a = new RealImage("show1.jpg");
+        RealImage b = new RealImage("show2.jpg");      // loaded but never shown
+        a.display();                                   // only this one is viewed
     }
 }`,
-    codeAfter: `// Photo gallery: a proxy shows a placeholder and lazy-loads HD on first view.
-interface Image {
-    void display();
-}
+    `// FIX: an ImageProxy defers loading until display() is actually called.
+interface Image { void display(); }
+
 class RealImage implements Image {
     private final String file;
     RealImage(String file) {
         this.file = file;
-        System.out.println("Loading HD image from disk: " + file);
+        System.out.println("Loading heavy image from disk: " + file);
     }
-    public void display() { System.out.println("Showing " + file); }
+    public void display() { System.out.println("Displaying " + file); }
 }
 
-class ImageProxy implements Image {                   // stand-in, same interface
+class ImageProxy implements Image {
     private final String file;
-    private RealImage real;                           // loaded on demand
+    private RealImage real;                            // created on first use
     ImageProxy(String file) { this.file = file; }
     public void display() {
-        if (real == null) real = new RealImage(file); // lazy load on first view
+        if (real == null) real = new RealImage(file);  // lazy load
         real.display();
     }
 }
 
-public class ProxyDemo {
+public class NetflixDemo {
     public static void main(String[] args) {
-        Image a = new ImageProxy("beach.jpg");
-        Image b = new ImageProxy("hills.jpg");        // NOT loaded yet
-        System.out.println("Proxies created, nothing loaded yet");
-        a.display();                                  // loads only when viewed
+        Image a = new ImageProxy("show1.jpg");
+        Image b = new ImageProxy("show2.jpg");          // NOT loaded yet
+        a.display();                                    // loads only show1
+        System.out.println("show2 never loaded because it was never viewed");
     }
-}`,
-    runDemo: `// Photo gallery: a proxy shows a placeholder and lazy-loads HD on first view.
-interface Image {
-    void display();
-}
-class RealImage implements Image {
-    private final String file;
-    RealImage(String file) {
-        this.file = file;
-        System.out.println("Loading HD image from disk: " + file);
-    }
-    public void display() { System.out.println("Showing " + file); }
-}
+}`
+  ),
 
-class ImageProxy implements Image {                   // stand-in, same interface
-    private final String file;
-    private RealImage real;                           // loaded on demand
-    ImageProxy(String file) { this.file = file; }
-    public void display() {
-        if (real == null) real = new RealImage(file); // lazy load on first view
-        real.display();
-    }
-}
-
-public class ProxyDemo {
-    public static void main(String[] args) {
-        Image a = new ImageProxy("beach.jpg");
-        Image b = new ImageProxy("hills.jpg");        // NOT loaded yet
-        System.out.println("Proxies created, nothing loaded yet");
-        a.display();                                  // loads only when viewed
-    }
-}`,
-  },
-
-  // Support ticket escalation
-  'chain-of-responsibility': {
-    codeBefore: `// Support: one dispatcher method decides the tier with nested if/else.
+  // Support ticket routing
+  'chain-of-responsibility': withDemo(
+    `// PROBLEM: one method with if/else deciding who handles each priority.
 class SupportDesk {
-    void handle(int priority, String issue) {
-        if (priority <= 1) {
-            System.out.println("L1 fixed: " + issue);
-        } else if (priority == 2) {
-            System.out.println("Billing fixed: " + issue);
+    void handle(String priority) {
+        if (priority.equals("low")) {
+            System.out.println("Junior handles low ticket");
+        } else if (priority.equals("medium")) {
+            System.out.println("Senior handles medium ticket");
+        } else if (priority.equals("high")) {
+            System.out.println("Manager handles high ticket");
         } else {
-            System.out.println("Engineering fixed: " + issue);
+            System.out.println("Unhandled: " + priority);
         }
-        // New tier or reordering? Edit this same method every time.
     }
 }
 
-public class ChainProblemDemo {
+public class SupportProblemDemo {
     public static void main(String[] args) {
         SupportDesk desk = new SupportDesk();
-        desk.handle(1, "password reset");
-        desk.handle(2, "double charge");
-        desk.handle(3, "server down");
+        desk.handle("low");
+        desk.handle("high");
+        // New tier -> edit this if/else again.
     }
 }`,
-    codeAfter: `// Support: handlers link together; each fixes the ticket or forwards it.
+    `// FIX: each handler tries, or passes the ticket to the next in the chain.
 abstract class Handler {
     protected Handler next;
     Handler setNext(Handler next) { this.next = next; return next; }
-    abstract void handle(int priority, String issue);
-    protected void forward(int priority, String issue) {
-        if (next != null) next.handle(priority, issue);
-        else System.out.println("Unresolved: " + issue);
-    }
-}
-class L1Handler extends Handler {
-    void handle(int priority, String issue) {
-        if (priority <= 1) System.out.println("L1 fixed: " + issue);
-        else forward(priority, issue);
-    }
-}
-class BillingHandler extends Handler {
-    void handle(int priority, String issue) {
-        if (priority == 2) System.out.println("Billing fixed: " + issue);
-        else forward(priority, issue);
-    }
-}
-class EngineeringHandler extends Handler {
-    void handle(int priority, String issue) {
-        System.out.println("Engineering fixed: " + issue);
+    abstract void handle(String priority);
+    protected void pass(String priority) {
+        if (next != null) next.handle(priority);
+        else System.out.println("Unhandled: " + priority);
     }
 }
 
-public class ChainDemo {
+class Junior  extends Handler {
+    void handle(String p) { if (p.equals("low")) System.out.println("Junior handles low"); else pass(p); }
+}
+class Senior  extends Handler {
+    void handle(String p) { if (p.equals("medium")) System.out.println("Senior handles medium"); else pass(p); }
+}
+class Manager extends Handler {
+    void handle(String p) { if (p.equals("high")) System.out.println("Manager handles high"); else pass(p); }
+}
+
+public class SupportDemo {
     public static void main(String[] args) {
-        Handler l1 = new L1Handler();
-        l1.setNext(new BillingHandler()).setNext(new EngineeringHandler());
-        l1.handle(1, "password reset");               // walks the chain
-        l1.handle(2, "double charge");
-        l1.handle(3, "server down");
+        Handler junior = new Junior();
+        junior.setNext(new Senior()).setNext(new Manager()); // build the chain
+        junior.handle("low");
+        junior.handle("high");                                // walks to Manager
     }
-}`,
-    runDemo: `// Support: handlers link together; each fixes the ticket or forwards it.
-abstract class Handler {
-    protected Handler next;
-    Handler setNext(Handler next) { this.next = next; return next; }
-    abstract void handle(int priority, String issue);
-    protected void forward(int priority, String issue) {
-        if (next != null) next.handle(priority, issue);
-        else System.out.println("Unresolved: " + issue);
-    }
-}
-class L1Handler extends Handler {
-    void handle(int priority, String issue) {
-        if (priority <= 1) System.out.println("L1 fixed: " + issue);
-        else forward(priority, issue);
-    }
-}
-class BillingHandler extends Handler {
-    void handle(int priority, String issue) {
-        if (priority == 2) System.out.println("Billing fixed: " + issue);
-        else forward(priority, issue);
-    }
-}
-class EngineeringHandler extends Handler {
-    void handle(int priority, String issue) {
-        System.out.println("Engineering fixed: " + issue);
-    }
-}
+}`
+  ),
 
-public class ChainDemo {
-    public static void main(String[] args) {
-        Handler l1 = new L1Handler();
-        l1.setNext(new BillingHandler()).setNext(new EngineeringHandler());
-        l1.handle(1, "password reset");               // walks the chain
-        l1.handle(2, "double charge");
-        l1.handle(3, "server down");
-    }
-}`,
-  },
-
-  // Text editor undo
-  command: {
-    codeBefore: `// Text editor: the Bold button calls the editor directly -> no undo, no history.
+  // Text editor toolbar
+  command: withDemo(
+    `// PROBLEM: the toolbar calls editor actions directly — no undo possible.
 class Editor {
     boolean bold = false;
-    void toggleBold() { bold = !bold; System.out.println("Bold: " + bold); }
+    void toggleBold() { bold = !bold; System.out.println("Bold = " + bold); }
 }
 
-public class CommandProblemDemo {
+public class EditorProblemDemo {
     public static void main(String[] args) {
         Editor editor = new Editor();
-        editor.toggleBold();                          // no ticket, no way to undo
+        editor.toggleBold();                           // toolbar -> action, hard-wired
         editor.toggleBold();
-        // There's no stack of actions to pop and reverse.
+        // No history object, so no generic undo/redo.
+        System.out.println("No way to undo the last action");
     }
 }`,
-    codeAfter: `// Text editor: each action is a Command with execute()/undo(); a stack undoes.
+    `// FIX: wrap actions as Command objects and push them on an undo stack.
 import java.util.*;
 
 class Editor {
     boolean bold = false;
-    void setBold(boolean b) { bold = b; System.out.println("Bold: " + bold); }
+    void setBold(boolean b) { bold = b; System.out.println("Bold = " + bold); }
 }
 
-interface Command {
-    void execute();
-    void undo();
-}
+interface Command { void execute(); void undo(); }
+
 class BoldCommand implements Command {
     private final Editor editor;
     private boolean previous;
     BoldCommand(Editor editor) { this.editor = editor; }
     public void execute() { previous = editor.bold; editor.setBold(!editor.bold); }
-    public void undo() { editor.setBold(previous); }
+    public void undo()    { editor.setBold(previous); }
 }
 
-public class CommandDemo {
+public class EditorDemo {
     public static void main(String[] args) {
         Editor editor = new Editor();
         Deque<Command> history = new ArrayDeque<>();
-        Command bold = new BoldCommand(editor);
-        bold.execute(); history.push(bold);
-        System.out.println("Undoing...");
-        history.pop().undo();
+
+        Command c = new BoldCommand(editor);
+        c.execute(); history.push(c);                  // record it
+        System.out.println("Undo:");
+        history.pop().undo();                          // generic undo
     }
-}`,
-    runDemo: `// Text editor: each action is a Command with execute()/undo(); a stack undoes.
-import java.util.*;
+}`
+  ),
 
-class Editor {
-    boolean bold = false;
-    void setBold(boolean b) { bold = b; System.out.println("Bold: " + bold); }
-}
-
-interface Command {
-    void execute();
-    void undo();
-}
-class BoldCommand implements Command {
-    private final Editor editor;
-    private boolean previous;
-    BoldCommand(Editor editor) { this.editor = editor; }
-    public void execute() { previous = editor.bold; editor.setBold(!editor.bold); }
-    public void undo() { editor.setBold(previous); }
-}
-
-public class CommandDemo {
-    public static void main(String[] args) {
-        Editor editor = new Editor();
-        Deque<Command> history = new ArrayDeque<>();
-        Command bold = new BoldCommand(editor);
-        bold.execute(); history.push(bold);
-        System.out.println("Undoing...");
-        history.pop().undo();
-    }
-}`,
-  },
-
-  // Access rule grammar
-  interpreter: {
-    codeBefore: `// Access rules: permission checks buried in fragile string parsing.
-class AccessChecker {
-    boolean check(String rule, String role) {
-        // e.g. rule = "admin AND editor" parsed with brittle string ops.
-        if (rule.contains("AND")) {
+  // App permissions rule
+  interpreter: withDemo(
+    `// PROBLEM: permission rules parsed by ad-hoc string matching.
+public class PermissionProblemDemo {
+    static boolean allowed(String rule, String userRole) {
+        // Fragile: only understands one hard-coded "A AND B" shape.
+        if (rule.contains(" AND ")) {
             String[] parts = rule.split(" AND ");
-            return role.equals(parts[0]) || role.equals(parts[1]);
-        } else if (rule.contains("admin")) {
-            return role.equals("admin");
+            return userRole.equals(parts[0].trim()) && userRole.equals(parts[1].trim());
         }
-        return false;
-        // Adding OR or a new role means editing this parser again.
+        return userRole.equals(rule.trim());
     }
-}
-
-public class InterpreterProblemDemo {
     public static void main(String[] args) {
-        AccessChecker checker = new AccessChecker();
-        System.out.println("admin allowed? " + checker.check("admin AND editor", "admin"));
-        System.out.println("guest allowed? " + checker.check("admin AND editor", "guest"));
+        System.out.println(allowed("admin", "admin"));               // true
+        System.out.println(allowed("admin AND editor", "admin"));    // false, awkward
+        // "admin OR editor"? Nesting? Rewrite the parser each time.
     }
 }`,
-    codeAfter: `// Access rules: each rule is an Expression node; interpret() evaluates the tree.
-interface Expression {
-    boolean interpret(String role);
-}
-class RoleExpression implements Expression {          // terminal (leaf)
+    `// FIX: model rules as an expression tree you can compose and evaluate.
+import java.util.*;
+
+interface Expression { boolean evaluate(Set<String> roles); }
+
+class Role implements Expression {
     private final String role;
-    RoleExpression(String role) { this.role = role; }
-    public boolean interpret(String r) { return r.equals(role); }
+    Role(String role) { this.role = role; }
+    public boolean evaluate(Set<String> roles) { return roles.contains(role); }
 }
-class Or implements Expression {                      // non-terminal
+class Or implements Expression {
     private final Expression left, right;
     Or(Expression left, Expression right) { this.left = left; this.right = right; }
-    public boolean interpret(String r) { return left.interpret(r) || right.interpret(r); }
-}
-
-public class InterpreterDemo {
-    public static void main(String[] args) {
-        Expression rule = new Or(new RoleExpression("admin"),
-                                 new RoleExpression("editor"));
-        System.out.println("admin allowed? " + rule.interpret("admin"));
-        System.out.println("guest allowed? " + rule.interpret("guest"));
+    public boolean evaluate(Set<String> roles) {
+        return left.evaluate(roles) || right.evaluate(roles);
     }
-}`,
-    runDemo: `// Access rules: each rule is an Expression node; interpret() evaluates the tree.
-interface Expression {
-    boolean interpret(String role);
-}
-class RoleExpression implements Expression {          // terminal (leaf)
-    private final String role;
-    RoleExpression(String role) { this.role = role; }
-    public boolean interpret(String r) { return r.equals(role); }
-}
-class Or implements Expression {                      // non-terminal
-    private final Expression left, right;
-    Or(Expression left, Expression right) { this.left = left; this.right = right; }
-    public boolean interpret(String r) { return left.interpret(r) || right.interpret(r); }
 }
 
-public class InterpreterDemo {
+public class PermissionDemo {
     public static void main(String[] args) {
-        Expression rule = new Or(new RoleExpression("admin"),
-                                 new RoleExpression("editor"));
-        System.out.println("admin allowed? " + rule.interpret("admin"));
-        System.out.println("guest allowed? " + rule.interpret("guest"));
+        Expression rule = new Or(new Role("admin"), new Role("editor")); // admin OR editor
+        Set<String> user = new HashSet<>(Arrays.asList("editor"));
+        System.out.println("Allowed? " + rule.evaluate(user));           // true
+        // Compose And, nested Or, etc. without touching a parser.
     }
-}`,
-  },
+}`
+  ),
 
-  // Music playlist
-  iterator: {
-    codeBefore: `// Music playlist: the Next button is tied to array indices.
+  // Music playlist iteration
+  iterator: withDemo(
+    `// PROBLEM: callers loop by index and depend on the array internals.
 class Playlist {
-    String[] songs = { "Intro", "Verse", "Chorus" };
+    String[] songs = { "Song A", "Song B", "Song C" };
 }
 
-public class IteratorProblemDemo {
+public class PlaylistProblemDemo {
     public static void main(String[] args) {
         Playlist playlist = new Playlist();
-        // Tightly coupled to array indexing/length.
-        for (int i = 0; i < playlist.songs.length; i++)
-            System.out.println("Now playing: " + playlist.songs[i]);
-        // Switch to a LinkedList backing store and every caller breaks.
+        // Caller must know it's an array and manage the index itself.
+        for (int i = 0; i < playlist.songs.length; i++) {
+            System.out.println("Playing " + playlist.songs[i]);
+        }
+        // Switch to a List or shuffle order -> every loop breaks.
     }
 }`,
-    codeAfter: `// Music playlist: an Iterator exposes hasNext()/next(); storage stays hidden.
+    `// FIX: expose an iterator; callers step through without knowing storage.
 import java.util.*;
 
-interface SongIterator {
-    boolean hasNext();
-    String next();
-}
-class Playlist {
-    private final List<String> songs = new ArrayList<>();
-    Playlist add(String song) { songs.add(song); return this; }
-    SongIterator iterator() {
-        return new SongIterator() {                   // hides the backing list
-            private int index = 0;
-            public boolean hasNext() { return index < songs.size(); }
-            public String next() { return songs.get(index++); }
-        };
+class Playlist implements Iterable<String> {
+    private final List<String> songs = Arrays.asList("Song A", "Song B", "Song C");
+    public Iterator<String> iterator() {               // hides the internal structure
+        return songs.iterator();
     }
 }
 
-public class IteratorDemo {
+public class PlaylistDemo {
     public static void main(String[] args) {
-        Playlist playlist = new Playlist().add("Intro").add("Verse").add("Chorus");
-        SongIterator it = playlist.iterator();
-        while (it.hasNext()) System.out.println("Now playing: " + it.next());
+        Playlist playlist = new Playlist();
+        for (String song : playlist) {                 // storage-agnostic loop
+            System.out.println("Playing " + song);
+        }
     }
-}`,
-    runDemo: `// Music playlist: an Iterator exposes hasNext()/next(); storage stays hidden.
-import java.util.*;
+}`
+  ),
 
-interface SongIterator {
-    boolean hasNext();
-    String next();
-}
-class Playlist {
-    private final List<String> songs = new ArrayList<>();
-    Playlist add(String song) { songs.add(song); return this; }
-    SongIterator iterator() {
-        return new SongIterator() {                   // hides the backing list
-            private int index = 0;
-            public boolean hasNext() { return index < songs.size(); }
-            public String next() { return songs.get(index++); }
-        };
-    }
-}
-
-public class IteratorDemo {
-    public static void main(String[] args) {
-        Playlist playlist = new Playlist().add("Intro").add("Verse").add("Chorus");
-        SongIterator it = playlist.iterator();
-        while (it.hasNext()) System.out.println("Now playing: " + it.next());
-    }
-}`,
-  },
-
-  // Group chat room
-  mediator: {
-    codeBefore: `// Group chat: users hold direct references to each other -> tangled mesh.
+  // Chat room mediator
+  mediator: withDemo(
+    `// PROBLEM: each user holds references to every other user.
 import java.util.*;
 
 class User {
     String name;
-    List<User> peers = new ArrayList<>();
+    List<User> peers = new ArrayList<>();              // tangled web of references
     User(String name) { this.name = name; }
     void send(String msg) {
-        for (User peer : peers)                       // must know every other user
+        for (User peer : peers) {
             System.out.println(name + " -> " + peer.name + ": " + msg);
+        }
     }
 }
 
-public class MediatorProblemDemo {
+public class ChatProblemDemo {
     public static void main(String[] args) {
-        User alice = new User("Alice");
-        User bob = new User("Bob");
-        User carol = new User("Carol");
-        // Adding a user means wiring it into every existing user's peer list.
-        alice.peers.add(bob);
-        alice.peers.add(carol);
-        alice.send("Meeting at 5");
+        User a = new User("Alice"), b = new User("Bob"), c = new User("Cara");
+        a.peers.addAll(Arrays.asList(b, c));           // wire everyone to everyone
+        b.peers.addAll(Arrays.asList(a, c));
+        a.send("hi");
+        // Add a user -> update every other user's peer list.
     }
 }`,
-    codeAfter: `// Group chat: users talk to a ChatRoom mediator; it routes messages.
+    `// FIX: a ChatRoom mediates; users only know the room.
 import java.util.*;
 
-class ChatRoom {                                      // the mediator
+class ChatRoom {
     private final List<User> users = new ArrayList<>();
-    void register(User user) { users.add(user); user.room = this; }
-    void send(String from, String msg) {
-        for (User user : users)
-            if (!user.name.equals(from))
-                System.out.println(from + " -> " + user.name + ": " + msg);
+    void join(User user) { users.add(user); user.room = this; }
+    void broadcast(User from, String msg) {            // central hub
+        for (User user : users) {
+            if (user != from) System.out.println(from.name + " -> " + user.name + ": " + msg);
+        }
     }
 }
+
 class User {
     String name;
     ChatRoom room;
     User(String name) { this.name = name; }
-    void send(String msg) { room.send(name, msg); }   // only knows the room
+    void send(String msg) { room.broadcast(this, msg); }
 }
 
-public class MediatorDemo {
+public class ChatDemo {
     public static void main(String[] args) {
         ChatRoom room = new ChatRoom();
-        User alice = new User("Alice");
-        User bob = new User("Bob");
-        User carol = new User("Carol");
-        room.register(alice);
-        room.register(bob);
-        room.register(carol);
-        alice.send("Meeting at 5");
+        User a = new User("Alice"), b = new User("Bob"), c = new User("Cara");
+        room.join(a); room.join(b); room.join(c);       // just join the room
+        a.send("hi");
     }
-}`,
-    runDemo: `// Group chat: users talk to a ChatRoom mediator; it routes messages.
-import java.util.*;
+}`
+  ),
 
-class ChatRoom {                                      // the mediator
-    private final List<User> users = new ArrayList<>();
-    void register(User user) { users.add(user); user.room = this; }
-    void send(String from, String msg) {
-        for (User user : users)
-            if (!user.name.equals(from))
-                System.out.println(from + " -> " + user.name + ": " + msg);
-    }
-}
-class User {
-    String name;
-    ChatRoom room;
-    User(String name) { this.name = name; }
-    void send(String msg) { room.send(name, msg); }   // only knows the room
-}
-
-public class MediatorDemo {
-    public static void main(String[] args) {
-        ChatRoom room = new ChatRoom();
-        User alice = new User("Alice");
-        User bob = new User("Bob");
-        User carol = new User("Carol");
-        room.register(alice);
-        room.register(bob);
-        room.register(carol);
-        alice.send("Meeting at 5");
-    }
-}`,
-  },
-
-  // Document undo snapshots
-  memento: {
-    codeBefore: `// Document undo: the caretaker copies a public field -> broken encapsulation.
+  // Editor undo snapshot
+  memento: withDemo(
+    `// PROBLEM: backups poke at the editor's public text field directly.
 class Editor {
-    String text = "";                                 // exposed for backup
+    public String text = "";                            // exposed internal state
 }
 
 public class MementoProblemDemo {
     public static void main(String[] args) {
         Editor editor = new Editor();
-        editor.text = "hello";
-        String backup = editor.text;                  // manual copy
-        editor.text = "hello world";
-        editor.text = backup;                         // manual restore
-        System.out.println(editor.text);
-        // Anyone can mutate live state; undo logic leaks everywhere.
+        editor.text = "Hello";
+        String backup = editor.text;                    // external copy of internals
+
+        editor.text = "Hello, world";
+        System.out.println("Now: " + editor.text);
+
+        editor.text = backup;                           // anyone can corrupt state
+        System.out.println("Restored: " + editor.text);
     }
 }`,
-    codeAfter: `// Document undo: originator makes opaque Mementos; a caretaker stores history.
-import java.util.*;
-
+    `// FIX: the editor emits an opaque memento; internals stay private.
 class Editor {
     private String text = "";
     void type(String t) { text = t; }
-    String getText() { return text; }
-    Memento save() { return new Memento(text); }      // opaque snapshot
-    void restore(Memento m) { text = m.state; }
+    String read() { return text; }
 
-    static class Memento {                             // caretaker can't peek
-        private final String state;
+    Memento save() { return new Memento(text); }        // snapshot
+    void restore(Memento m) { text = m.state; }         // rollback
+
+    static class Memento {
+        private final String state;                     // encapsulated, read-only
         private Memento(String state) { this.state = state; }
     }
 }
@@ -1456,457 +931,274 @@ class Editor {
 public class MementoDemo {
     public static void main(String[] args) {
         Editor editor = new Editor();
-        Deque<Editor.Memento> history = new ArrayDeque<>();
-        editor.type("hello");
-        history.push(editor.save());                  // checkpoint
-        editor.type("hello world");
-        System.out.println("Before undo: " + editor.getText());
-        editor.restore(history.pop());                // undo
-        System.out.println("After undo: " + editor.getText());
+        editor.type("Hello");
+        Editor.Memento saved = editor.save();           // no field poking
+
+        editor.type("Hello, world");
+        System.out.println("Now: " + editor.read());
+
+        editor.restore(saved);
+        System.out.println("Restored: " + editor.read());
     }
-}`,
-    runDemo: `// Document undo: originator makes opaque Mementos; a caretaker stores history.
-import java.util.*;
+}`
+  ),
 
-class Editor {
-    private String text = "";
-    void type(String t) { text = t; }
-    String getText() { return text; }
-    Memento save() { return new Memento(text); }      // opaque snapshot
-    void restore(Memento m) { text = m.state; }
-
-    static class Memento {                             // caretaker can't peek
-        private final String state;
-        private Memento(String state) { this.state = state; }
-    }
-}
-
-public class MementoDemo {
-    public static void main(String[] args) {
-        Editor editor = new Editor();
-        Deque<Editor.Memento> history = new ArrayDeque<>();
-        editor.type("hello");
-        history.push(editor.save());                  // checkpoint
-        editor.type("hello world");
-        System.out.println("Before undo: " + editor.getText());
-        editor.restore(history.pop());                // undo
-        System.out.println("After undo: " + editor.getText());
-    }
-}`,
-  },
-
-  // Stock price alerts
-  observer: {
-    codeBefore: `// Stock alerts: the ticker hard-codes each notification channel inside setPrice().
+  // Stock price observer
+  observer: withDemo(
+    `// PROBLEM: the ticker hard-codes every notification channel in setPrice.
 class StockTicker {
-    void setPrice(String symbol, double price) {
-        System.out.println(symbol + " = " + price);
-        // Every channel is baked into the ticker -> edit here to add SMS.
-        System.out.println("Phone alert: " + symbol + " " + price);
-        System.out.println("Email alert: " + symbol + " " + price);
+    double price;
+    void setPrice(double price) {
+        this.price = price;
+        // Every new channel means editing this method.
+        System.out.println("SMS: price is " + price);
+        System.out.println("Email: price is " + price);
     }
 }
 
-public class ObserverProblemDemo {
-    public static void main(String[] args) {
-        new StockTicker().setPrice("AAPL", 231.5);
-    }
-}`,
-    codeAfter: `// Stock alerts: the ticker notifies subscribed observers; add channels freely.
-import java.util.*;
-
-interface Observer {
-    void update(String symbol, double price);
-}
-class PhoneAlert implements Observer {
-    public void update(String symbol, double price) {
-        System.out.println("Phone alert: " + symbol + " " + price);
-    }
-}
-class EmailAlert implements Observer {
-    public void update(String symbol, double price) {
-        System.out.println("Email alert: " + symbol + " " + price);
-    }
-}
-
-class StockTicker {                                   // the subject
-    private final List<Observer> observers = new ArrayList<>();
-    void subscribe(Observer o) { observers.add(o); }
-    void setPrice(String symbol, double price) {
-        for (Observer o : observers) o.update(symbol, price); // push to all
-    }
-}
-
-public class ObserverDemo {
+public class StockProblemDemo {
     public static void main(String[] args) {
         StockTicker ticker = new StockTicker();
-        ticker.subscribe(new PhoneAlert());
-        ticker.subscribe(new EmailAlert());
-        ticker.setPrice("AAPL", 231.5);
+        ticker.setPrice(101.5);
+        // Add a "push notification"? Edit setPrice yet again.
     }
 }`,
-    runDemo: `// Stock alerts: the ticker notifies subscribed observers; add channels freely.
+    `// FIX: observers subscribe; setPrice just notifies whoever is listening.
 import java.util.*;
 
-interface Observer {
-    void update(String symbol, double price);
-}
-class PhoneAlert implements Observer {
-    public void update(String symbol, double price) {
-        System.out.println("Phone alert: " + symbol + " " + price);
-    }
-}
-class EmailAlert implements Observer {
-    public void update(String symbol, double price) {
-        System.out.println("Email alert: " + symbol + " " + price);
-    }
-}
+interface Observer { void update(double price); }
 
-class StockTicker {                                   // the subject
+class StockTicker {
     private final List<Observer> observers = new ArrayList<>();
+    private double price;
     void subscribe(Observer o) { observers.add(o); }
-    void setPrice(String symbol, double price) {
-        for (Observer o : observers) o.update(symbol, price); // push to all
+    void setPrice(double price) {
+        this.price = price;
+        for (Observer o : observers) o.update(price);   // no hard-coded channels
     }
 }
 
-public class ObserverDemo {
+class SmsAlert   implements Observer { public void update(double p) { System.out.println("SMS: price is " + p); } }
+class EmailAlert implements Observer { public void update(double p) { System.out.println("Email: price is " + p); } }
+
+public class StockDemo {
     public static void main(String[] args) {
         StockTicker ticker = new StockTicker();
-        ticker.subscribe(new PhoneAlert());
+        ticker.subscribe(new SmsAlert());               // add channels freely
         ticker.subscribe(new EmailAlert());
-        ticker.setPrice("AAPL", 231.5);
+        ticker.setPrice(101.5);
     }
-}`,
-  },
+}`
+  ),
 
-  // Order lifecycle states
-  state: {
-    codeBefore: `// Order lifecycle: one class with status flags and if/else on every action.
-class Order {
-    String status = "NEW";
-    void pay() {
-        if (status.equals("NEW")) { status = "PAID"; System.out.println("Paid"); }
-        else System.out.println("Cannot pay from " + status);
+  // Vending machine states
+  state: withDemo(
+    `// PROBLEM: one status field + if/else scattered across every method.
+class VendingMachine {
+    String status = "NO_COIN";
+    void insertCoin() {
+        if (status.equals("NO_COIN")) { status = "HAS_COIN"; System.out.println("Coin accepted"); }
+        else { System.out.println("Coin already inserted"); }
     }
-    void ship() {
-        if (status.equals("PAID")) { status = "SHIPPED"; System.out.println("Shipped"); }
-        else System.out.println("Cannot ship from " + status); // invalid jumps slip in
+    void dispense() {
+        if (status.equals("HAS_COIN")) { status = "NO_COIN"; System.out.println("Item dispensed"); }
+        else { System.out.println("Insert a coin first"); }
     }
-    // Add "Refunded" and every method grows another branch.
 }
 
-public class StateProblemDemo {
+public class VendingProblemDemo {
     public static void main(String[] args) {
-        Order order = new Order();
-        order.ship();                                 // invalid: not paid yet
-        order.pay();
-        order.ship();
+        VendingMachine m = new VendingMachine();
+        m.dispense();                                   // "Insert a coin first"
+        m.insertCoin();
+        m.dispense();
+        // Add a "sold out" state -> touch every method's if/else.
     }
 }`,
-    codeAfter: `// Order lifecycle: each state is an object owning only its valid transitions.
-interface OrderState {
-    void pay(Order order);
-    void ship(Order order);
-}
-class NewState implements OrderState {
-    public void pay(Order order) { System.out.println("Paid"); order.setState(new PaidState()); }
-    public void ship(Order order) { System.out.println("Cannot ship: not paid"); }
-}
-class PaidState implements OrderState {
-    public void pay(Order order) { System.out.println("Already paid"); }
-    public void ship(Order order) { System.out.println("Shipped"); order.setState(new ShippedState()); }
-}
-class ShippedState implements OrderState {
-    public void pay(Order order) { System.out.println("Already shipped"); }
-    public void ship(Order order) { System.out.println("Already shipped"); }
+    `// FIX: each state is an object that knows its own transitions.
+interface State {
+    void insertCoin(VendingMachine m);
+    void dispense(VendingMachine m);
 }
 
-class Order {
-    private OrderState state = new NewState();
-    void setState(OrderState state) { this.state = state; }
-    void pay() { state.pay(this); }                   // delegate to current state
-    void ship() { state.ship(this); }
+class NoCoinState implements State {
+    public void insertCoin(VendingMachine m) { System.out.println("Coin accepted"); m.setState(new CoinInsertedState()); }
+    public void dispense(VendingMachine m)   { System.out.println("Insert a coin first"); }
+}
+class CoinInsertedState implements State {
+    public void insertCoin(VendingMachine m) { System.out.println("Coin already inserted"); }
+    public void dispense(VendingMachine m)   { System.out.println("Dispensing..."); m.setState(new DispensingState()); m.dispense(); }
+}
+class DispensingState implements State {
+    public void insertCoin(VendingMachine m) { System.out.println("Please wait, dispensing"); }
+    public void dispense(VendingMachine m)   { System.out.println("Item dispensed"); m.setState(new NoCoinState()); }
 }
 
-public class StateDemo {
+class VendingMachine {
+    private State state = new NoCoinState();
+    void setState(State state) { this.state = state; }
+    void insertCoin() { state.insertCoin(this); }
+    void dispense()   { state.dispense(this); }
+}
+
+public class VendingDemo {
     public static void main(String[] args) {
-        Order order = new Order();
-        order.ship();                                 // Cannot ship: not paid
-        order.pay();                                  // Paid
-        order.ship();                                 // Shipped
+        VendingMachine m = new VendingMachine();
+        m.dispense();                                   // NoCoin -> "Insert a coin first"
+        m.insertCoin();
+        m.dispense();                                   // walks through states
     }
-}`,
-    runDemo: `// Order lifecycle: each state is an object owning only its valid transitions.
-interface OrderState {
-    void pay(Order order);
-    void ship(Order order);
-}
-class NewState implements OrderState {
-    public void pay(Order order) { System.out.println("Paid"); order.setState(new PaidState()); }
-    public void ship(Order order) { System.out.println("Cannot ship: not paid"); }
-}
-class PaidState implements OrderState {
-    public void pay(Order order) { System.out.println("Already paid"); }
-    public void ship(Order order) { System.out.println("Shipped"); order.setState(new ShippedState()); }
-}
-class ShippedState implements OrderState {
-    public void pay(Order order) { System.out.println("Already shipped"); }
-    public void ship(Order order) { System.out.println("Already shipped"); }
-}
+}`
+  ),
 
-class Order {
-    private OrderState state = new NewState();
-    void setState(OrderState state) { this.state = state; }
-    void pay() { state.pay(this); }                   // delegate to current state
-    void ship() { state.ship(this); }
-}
-
-public class StateDemo {
-    public static void main(String[] args) {
-        Order order = new Order();
-        order.ship();                                 // Cannot ship: not paid
-        order.pay();                                  // Paid
-        order.ship();                                 // Shipped
-    }
-}`,
-  },
-
-  // Payment methods
-  strategy: {
-    codeBefore: `// Checkout: pay() is one method full of payment-type if/else.
+  // Checkout payment strategy
+  strategy: withDemo(
+    `// PROBLEM: pay() branches on payment type with if/else.
 class Checkout {
     void pay(String method, double amount) {
         if (method.equals("card")) {
-            System.out.println("Card paid " + amount);
+            System.out.println("Paid $" + amount + " by card");
         } else if (method.equals("upi")) {
-            System.out.println("UPI paid " + amount);
-        } else if (method.equals("cash")) {
-            System.out.println("Cash paid " + amount);
+            System.out.println("Paid $" + amount + " by UPI");
+        } else {
+            System.out.println("Unsupported method: " + method);
         }
-        // Add PayPal -> edit pay() again and retest every branch.
     }
 }
 
-public class StrategyProblemDemo {
+public class CheckoutProblemDemo {
     public static void main(String[] args) {
         Checkout checkout = new Checkout();
-        checkout.pay("card", 100.0);
-        checkout.pay("upi", 250.0);
+        checkout.pay("card", 50);
+        checkout.pay("upi", 20);
+        // New wallet option -> edit pay() again.
     }
 }`,
-    codeAfter: `// Checkout: pick a PaymentStrategy; pay() delegates to strategy.process().
-interface PaymentStrategy {
-    void process(double amount);
-}
+    `// FIX: each payment method is a pluggable strategy.
+interface PaymentStrategy { void pay(double amount); }
+
 class CardPayment implements PaymentStrategy {
-    public void process(double amount) { System.out.println("Card paid " + amount); }
+    public void pay(double amount) { System.out.println("Paid $" + amount + " by card"); }
 }
 class UpiPayment implements PaymentStrategy {
-    public void process(double amount) { System.out.println("UPI paid " + amount); }
+    public void pay(double amount) { System.out.println("Paid $" + amount + " by UPI"); }
 }
 
 class Checkout {
     private PaymentStrategy strategy;
     void setStrategy(PaymentStrategy strategy) { this.strategy = strategy; }
-    void pay(double amount) { strategy.process(amount); } // same Pay button
+    void pay(double amount) { strategy.pay(amount); }   // no branching
 }
 
-public class StrategyDemo {
+public class CheckoutDemo {
     public static void main(String[] args) {
         Checkout checkout = new Checkout();
         checkout.setStrategy(new CardPayment());
-        checkout.pay(100.0);
-        checkout.setStrategy(new UpiPayment());       // add PayPal without touching Checkout
-        checkout.pay(250.0);
+        checkout.pay(50);
+        checkout.setStrategy(new UpiPayment());         // swap at runtime
+        checkout.pay(20);
     }
-}`,
-    runDemo: `// Checkout: pick a PaymentStrategy; pay() delegates to strategy.process().
-interface PaymentStrategy {
-    void process(double amount);
+}`
+  ),
+
+  // Tea / coffee brewing
+  'template-method': withDemo(
+    `// PROBLEM: Tea and Coffee duplicate the shared heat/pour steps.
+class Tea {
+    void prepare() {
+        System.out.println("Boil water");              // duplicated
+        System.out.println("Steep the tea");
+        System.out.println("Pour into cup");           // duplicated
+    }
 }
-class CardPayment implements PaymentStrategy {
-    public void process(double amount) { System.out.println("Card paid " + amount); }
-}
-class UpiPayment implements PaymentStrategy {
-    public void process(double amount) { System.out.println("UPI paid " + amount); }
+class Coffee {
+    void prepare() {
+        System.out.println("Boil water");              // duplicated
+        System.out.println("Brew the coffee");
+        System.out.println("Pour into cup");           // duplicated
+    }
 }
 
-class Checkout {
-    private PaymentStrategy strategy;
-    void setStrategy(PaymentStrategy strategy) { this.strategy = strategy; }
-    void pay(double amount) { strategy.process(amount); } // same Pay button
-}
-
-public class StrategyDemo {
+public class BeverageProblemDemo {
     public static void main(String[] args) {
-        Checkout checkout = new Checkout();
-        checkout.setStrategy(new CardPayment());
-        checkout.pay(100.0);
-        checkout.setStrategy(new UpiPayment());       // add PayPal without touching Checkout
-        checkout.pay(250.0);
+        new Tea().prepare();
+        new Coffee().prepare();
+        // Change "Boil water" -> edit it in both classes.
     }
 }`,
-  },
-
-  // Report generation workflow
-  'template-method': {
-    codeBefore: `// Report generation: each report duplicates fetch and print steps.
-class SalesReport {
-    void generate() {
-        System.out.println("Fetching data...");      // duplicated
-        System.out.println("Formatting sales rows"); // varies
-        System.out.println("Printing report");       // duplicated
+    `// FIX: a base class fixes the recipe; subclasses fill in the one varying step.
+abstract class Beverage {
+    final void prepare() {                              // template method (recipe)
+        boilWater();
+        brew();                                        // the varying step
+        pourInCup();
     }
-}
-class InventoryReport {
-    void generate() {
-        System.out.println("Fetching data...");      // copy-pasted again
-        System.out.println("Formatting inventory rows");
-        System.out.println("Printing report");       // fix order in one, forget the other
-    }
+    private void boilWater() { System.out.println("Boil water"); }
+    private void pourInCup() { System.out.println("Pour into cup"); }
+    abstract void brew();
 }
 
-public class TemplateMethodProblemDemo {
+class Tea extends Beverage {
+    void brew() { System.out.println("Steep the tea"); }
+}
+class Coffee extends Beverage {
+    void brew() { System.out.println("Brew the coffee"); }
+}
+
+public class BeverageDemo {
     public static void main(String[] args) {
-        new SalesReport().generate();
-        new InventoryReport().generate();
+        new Tea().prepare();                            // shared steps live once
+        new Coffee().prepare();
     }
-}`,
-    codeAfter: `// Report generation: a base defines the skeleton; subclasses override one step.
-abstract class Report {
-    final void generate() {                           // the template (skeleton)
-        fetch();
-        format();                                     // the varying step
-        print();
-    }
-    private void fetch() { System.out.println("Fetching data..."); }
-    abstract void format();
-    private void print() { System.out.println("Printing report"); }
+}`
+  ),
+
+  // Tax auditor visiting departments
+  visitor: withDemo(
+    `// PROBLEM: every department carries its own exportTax() method.
+class HR {
+    void exportTax() { System.out.println("HR tax export"); }         // audit logic
 }
-class SalesReport extends Report {
-    void format() { System.out.println("Formatting sales rows"); }
+class Engineering {
+    void exportTax() { System.out.println("Engineering tax export"); } // duplicated shape
 }
-class InventoryReport extends Report {
-    void format() { System.out.println("Formatting inventory rows"); }
+class Sales {
+    void exportTax() { System.out.println("Sales tax export"); }
 }
 
-public class TemplateMethodDemo {
+public class TaxProblemDemo {
     public static void main(String[] args) {
-        new SalesReport().generate();
-        new InventoryReport().generate();
+        new HR().exportTax();
+        new Engineering().exportTax();
+        new Sales().exportTax();
+        // New audit type (e.g. headcount) -> add a method to EVERY department.
     }
 }`,
-    runDemo: `// Report generation: a base defines the skeleton; subclasses override one step.
-abstract class Report {
-    final void generate() {                           // the template (skeleton)
-        fetch();
-        format();                                     // the varying step
-        print();
-    }
-    private void fetch() { System.out.println("Fetching data..."); }
-    abstract void format();
-    private void print() { System.out.println("Printing report"); }
-}
-class SalesReport extends Report {
-    void format() { System.out.println("Formatting sales rows"); }
-}
-class InventoryReport extends Report {
-    void format() { System.out.println("Formatting inventory rows"); }
-}
+    `// FIX: departments accept a visitor; new audits are just new visitors.
+interface Department { void accept(Visitor v); }
 
-public class TemplateMethodDemo {
-    public static void main(String[] args) {
-        new SalesReport().generate();
-        new InventoryReport().generate();
-    }
-}`,
-  },
+class HR          implements Department { public void accept(Visitor v) { v.visit(this); } }
+class Engineering implements Department { public void accept(Visitor v) { v.visit(this); } }
+class Sales       implements Department { public void accept(Visitor v) { v.visit(this); } }
 
-  // Shape export operations
-  visitor: {
-    codeBefore: `// Shape export: every export type is a method piled onto each shape class.
-class Circle {
-    double r;
-    Circle(double r) { this.r = r; }
-    void exportPdf() { System.out.println("Circle to PDF"); }
-    void exportJson() { System.out.println("Circle to JSON"); } // more piling on
-}
-class Square {
-    double s;
-    Square(double s) { this.s = s; }
-    void exportPdf() { System.out.println("Square to PDF"); }
-    void exportJson() { System.out.println("Square to JSON"); }
-}
-
-public class VisitorProblemDemo {
-    public static void main(String[] args) {
-        new Circle(2).exportPdf();
-        new Square(3).exportJson();
-        // Adding an "area" report means editing EVERY shape class.
-    }
-}`,
-    codeAfter: `// Shape export: shapes accept a visitor; new operations are new visitors.
 interface Visitor {
-    void visit(Circle c);
-    void visit(Square s);
-}
-interface Shape {
-    void accept(Visitor v);                           // double-dispatch hook
-}
-class Circle implements Shape {
-    double r;
-    Circle(double r) { this.r = r; }
-    public void accept(Visitor v) { v.visit(this); }
-}
-class Square implements Shape {
-    double s;
-    Square(double s) { this.s = s; }
-    public void accept(Visitor v) { v.visit(this); }
+    void visit(HR hr);
+    void visit(Engineering eng);
+    void visit(Sales sales);
 }
 
-class AreaVisitor implements Visitor {                // one new operation, one class
-    public void visit(Circle c) { System.out.println("Circle area: " + (3.14 * c.r * c.r)); }
-    public void visit(Square s) { System.out.println("Square area: " + (s.s * s.s)); }
+class TaxVisitor implements Visitor {                   // one operation, all departments
+    public void visit(HR hr)           { System.out.println("HR tax export"); }
+    public void visit(Engineering eng) { System.out.println("Engineering tax export"); }
+    public void visit(Sales sales)     { System.out.println("Sales tax export"); }
 }
 
-public class VisitorDemo {
+public class TaxDemo {
     public static void main(String[] args) {
-        Shape[] shapes = { new Circle(2), new Square(3) };
-        Visitor area = new AreaVisitor();
-        for (Shape shape : shapes) shape.accept(area);
+        Department[] departments = { new HR(), new Engineering(), new Sales() };
+        Visitor taxAudit = new TaxVisitor();
+        for (Department d : departments) d.accept(taxAudit); // add visitors, not methods
     }
-}`,
-    runDemo: `// Shape export: shapes accept a visitor; new operations are new visitors.
-interface Visitor {
-    void visit(Circle c);
-    void visit(Square s);
-}
-interface Shape {
-    void accept(Visitor v);                           // double-dispatch hook
-}
-class Circle implements Shape {
-    double r;
-    Circle(double r) { this.r = r; }
-    public void accept(Visitor v) { v.visit(this); }
-}
-class Square implements Shape {
-    double s;
-    Square(double s) { this.s = s; }
-    public void accept(Visitor v) { v.visit(this); }
-}
-
-class AreaVisitor implements Visitor {                // one new operation, one class
-    public void visit(Circle c) { System.out.println("Circle area: " + (3.14 * c.r * c.r)); }
-    public void visit(Square s) { System.out.println("Square area: " + (s.s * s.s)); }
-}
-
-public class VisitorDemo {
-    public static void main(String[] args) {
-        Shape[] shapes = { new Circle(2), new Square(3) };
-        Visitor area = new AreaVisitor();
-        for (Shape shape : shapes) shape.accept(area);
-    }
-}`,
-  },
+}`
+  ),
 };

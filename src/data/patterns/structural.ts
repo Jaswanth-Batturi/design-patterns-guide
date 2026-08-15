@@ -489,7 +489,7 @@ theater.watchMovie("Inception");`,
     slug: 'flyweight',
     name: 'Flyweight',
     category: 'structural',
-    oneLiner: 'Share heavy data (glyphs, textures) across many objects — one “A”, thousands of positions.',
+    oneLiner: 'Share one oak sprite across thousands of trees — position varies, mesh data is shared.',
     analogy:
       'A library lending the same copy of a bestseller to hundreds of readers: each reader has their own loan record (extrinsic), but they all reference one physical book (shared intrinsic state).',
     analogyIcon: '🔤',

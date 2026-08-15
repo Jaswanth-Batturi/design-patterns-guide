@@ -187,7 +187,7 @@ public class ExcelExporterCreator extends ExporterCreator {
     slug: 'abstract-factory',
     name: 'Abstract Factory',
     category: 'creational',
-    oneLiner: 'Create families of related objects without naming their concrete classes.',
+    oneLiner: 'Pick one furniture style and get a matched sofa, lamp, and table — not mismatched pieces.',
     analogy:
       'Furniture showroom kits: pick a "Modern" or "Victorian" style and get a matching chair, sofa, and table. Switch the whole set at once — no mixing mismatched pieces.',
     analogyIcon: '🏭',
