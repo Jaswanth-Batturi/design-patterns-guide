@@ -1,0 +1,44 @@
+---
+interface Props {
+  withoutPains: string[];
+  withWins: string[];
+}
+
+const { withoutPains, withWins } = Astro.props;
+---
+
+<section class="grid gap-4 sm:grid-cols-2" aria-labelledby="tradeoff-heading">
+  <h2 id="tradeoff-heading" class="sr-only">Without vs with the pattern</h2>
+
+  <div class="rounded-2xl border border-rose-500/25 bg-rose-950/25 p-5">
+    <h3 class="flex items-center gap-2 font-semibold text-rose-300">
+      <span aria-hidden="true">😣</span>
+      Without this pattern
+    </h3>
+    <p class="mt-1 text-xs text-rose-200/70">What you suffer in real projects</p>
+    <ul class="mt-4 space-y-2.5 text-sm text-slate-300">
+      {withoutPains.map((item) => (
+        <li class="flex gap-2">
+          <span class="text-rose-400 shrink-0">×</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <div class="rounded-2xl border border-emerald-500/25 bg-emerald-950/25 p-5">
+    <h3 class="flex items-center gap-2 font-semibold text-emerald-300">
+      <span aria-hidden="true">✅</span>
+      With this pattern
+    </h3>
+    <p class="mt-1 text-xs text-emerald-200/70">What gets easier</p>
+    <ul class="mt-4 space-y-2.5 text-sm text-slate-300">
+      {withWins.map((item) => (
+        <li class="flex gap-2">
+          <span class="text-emerald-400 shrink-0">✓</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

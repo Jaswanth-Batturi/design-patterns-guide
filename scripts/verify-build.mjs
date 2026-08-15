@@ -33,8 +33,8 @@ for (const file of required) {
 }
 
 const indexHtml = readFileSync(join(dist, 'index.html'), 'utf8');
-if (!indexHtml.includes('23 GoF patterns')) {
-  console.error('MISSING: homepage should mention 23 GoF patterns');
+if (!indexHtml.includes('Design Patterns, Simply')) {
+  console.error('MISSING: homepage branding');
   failed++;
 }
 if (indexHtml.includes('href="/patterns/')) {
@@ -58,8 +58,8 @@ if (!observerHtml.includes('data-oc-frame')) {
   console.error('MISSING: OneCompiler runner on observer page');
   failed++;
 }
-if (!observerHtml.includes('analogy-card')) {
-  console.error('MISSING: analogy animation card');
+if (!observerHtml.includes('scene-card') && !observerHtml.includes('Picture this in real life')) {
+  console.error('MISSING: real-life scene on observer page');
   failed++;
 }
 

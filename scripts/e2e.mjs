@@ -29,7 +29,7 @@ async function run() {
   // --- Homepage ---
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
   const title = await page.title();
-  if (!title.includes('Patterns in Practice')) {
+  if (!title.includes('Design Patterns, Simply')) {
     record('HIGH', 'Home', `Unexpected title: ${title}`);
   }
 
@@ -55,7 +55,7 @@ async function run() {
   await page.getByRole('link', { name: 'Finder', exact: true }).click();
 
   // Logo home
-  await page.getByRole('link', { name: 'Patterns in Practice' }).click();
+  await page.getByRole('link', { name: 'Design Patterns, Simply' }).click();
   if (!page.url().endsWith('/design-patterns-guide/') && !page.url().endsWith('/design-patterns-guide')) {
     if (!page.url().includes('/design-patterns-guide')) {
       record('HIGH', 'Nav', `Logo link wrong: ${page.url()}`);

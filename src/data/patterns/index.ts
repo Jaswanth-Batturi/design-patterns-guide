@@ -5,7 +5,7 @@ import type { Pattern } from './types';
 import { categoryLabels } from './types';
 
 export type { Pattern, PatternCategory, QuizQuestion } from './types';
-export { categoryLabels };
+export { categoryLabels, categoryHints } from './types';
 
 /** All 23 GoF patterns in a stable learning order. */
 export const patterns: Pattern[] = [
@@ -17,6 +17,9 @@ export const patterns: Pattern[] = [
 export function getPattern(slug: string): Pattern | undefined {
   return patterns.find((p) => p.slug === slug);
 }
+
+export { enrichPattern } from './enrich';
+export type { EnrichedPattern } from './enrich';
 
 export interface FinderRule {
   keywords: string[];

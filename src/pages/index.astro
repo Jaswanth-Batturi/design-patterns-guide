@@ -13,23 +13,38 @@ const grouped = {
 const categories: PatternCategory[] = ['creational', 'structural', 'behavioral'];
 ---
 
-<BaseLayout title="Patterns in Practice">
-  <section class="mb-16 text-center sm:text-left">
-    <p class="text-sm font-semibold uppercase tracking-widest text-indigo-400">Design patterns · Java</p>
-    <h1 class="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-      Learn when to use each pattern,<br class="hidden sm:block" />
-      {' '}not just what they are.
+<BaseLayout title="Design Patterns, Simply">
+  <section class="mb-16">
+    <p class="text-sm font-semibold uppercase tracking-widest text-indigo-400">23 patterns · Java</p>
+    <h1 class="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl leading-tight">
+      Know <em class="text-indigo-300 not-italic">when</em> to use each design pattern.
     </h1>
     <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-400">
-      Real-life analogies, before/after Java code, interactive quizzes, and a pattern finder.
-      Built for beginners and experienced developers who want clarity without jargon overload.
+      Not textbook definitions — everyday situations, what goes wrong without the pattern,
+      what gets easier with it, then Java you can run.
     </p>
-    <div class="mt-8 flex flex-wrap gap-3 justify-center sm:justify-start">
-      <a href="#patterns" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 hover:bg-indigo-500 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
-        Browse patterns
+
+    <div class="mt-8 grid gap-3 sm:grid-cols-3 max-w-3xl">
+      <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-sm">
+        <span class="text-indigo-400 font-bold">1.</span>
+        <span class="text-slate-300"> Picture a real-life scene</span>
+      </div>
+      <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-sm">
+        <span class="text-indigo-400 font-bold">2.</span>
+        <span class="text-slate-300"> Compare without vs with</span>
+      </div>
+      <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-sm">
+        <span class="text-indigo-400 font-bold">3.</span>
+        <span class="text-slate-300"> Run code & take a quiz</span>
+      </div>
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="#patterns" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 hover:bg-indigo-500 transition-colors">
+        Browse all 23 patterns
       </a>
-      <a href="#finder" class="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:border-indigo-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-        Find a pattern
+      <a href="#finder" class="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:border-indigo-500 hover:text-white transition-colors">
+        Help me pick a pattern
       </a>
     </div>
   </section>
@@ -40,7 +55,7 @@ const categories: PatternCategory[] = ['creational', 'structural', 'behavioral']
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h2 class="text-2xl font-bold text-white">Pattern library</h2>
-        <p class="mt-2 text-slate-400">{patterns.length} GoF patterns — full library.</p>
+        <p class="mt-2 text-slate-400">All 23 Gang of Four patterns — each page follows the same easy path.</p>
       </div>
       <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by category" id="category-filters">
         <button type="button" data-filter="all" class="filter-btn rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400" aria-pressed="true">All</button>
@@ -70,16 +85,6 @@ const categories: PatternCategory[] = ['creational', 'structural', 'behavioral']
         )
       )
     }
-  </section>
-
-  <section class="mt-16 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 sm:p-8">
-    <h2 class="text-xl font-semibold text-white">How to use this site</h2>
-    <ol class="mt-4 space-y-3 text-slate-400 list-decimal list-inside">
-      <li>Read the one-liner and real-life analogy first — no code yet.</li>
-      <li>Compare <strong class="text-slate-300">without vs with</strong> the pattern in Java.</li>
-      <li>Check when to use and when <em>not</em> to use before applying it at work.</li>
-      <li>Take the quick quiz to reinforce the idea.</li>
-    </ol>
   </section>
 </BaseLayout>
 
