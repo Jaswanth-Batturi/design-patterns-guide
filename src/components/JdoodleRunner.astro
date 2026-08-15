@@ -1,0 +1,64 @@
+---
+interface Props {
+  code: string;
+  label?: string;
+}
+
+const { code, label = 'Run with pattern code' } = Astro.props;
+const embedId = `jdoodle-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<section class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden" data-jdoodle-runner={embedId}>
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+    <div>
+      <h3 class="text-sm font-semibold text-white">Try it — Java</h3>
+      <p class="text-xs text-slate-500">Runs in JDoodle embed (Java 17). Edit and hit Execute.</p>
+    </div>
+    <button
+      type="button"
+      data-load-runner
+      class="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
+    >
+      Load runner
+    </button>
+  </div>
+  <div data-runner-placeholder class="px-4 py-8 text-center text-sm text-slate-500">
+  Click <span class="text-slate-300">Load runner</span> to open an interactive Java console with the pattern example.
+  </div>
+  <div data-runner-host class="hidden min-h-[320px] bg-slate-950"></div>
+  <textarea data-runner-code class="hidden" aria-hidden="true">{code}</textarea>
+</section>
+
+<script>
+  document.querySelectorAll('[data-jdoodle-runner]').forEach((root) => {
+    const btn = root.querySelector('[data-load-runner]');
+    const host = root.querySelector('[data-runner-host]');
+    const placeholder = root.querySelector('[data-runner-placeholder]');
+    const codeEl = root.querySelector('[data-runner-code]');
+    let loaded = false;
+
+    btn?.addEventListener('click', () => {
+      if (loaded) return;
+      loaded = true;
+      const code = codeEl?.textContent?.trim() ?? '';
+      placeholder?.classList.add('hidden');
+      host?.classList.remove('hidden');
+
+      const embed = document.createElement('div');
+      embed.setAttribute('data-nodeid', '1');
+      embed.setAttribute('data-language', 'java');
+      embed.setAttribute('data-version-index', '4');
+      embed.setAttribute('data-code', code);
+      host?.appendChild(embed);
+
+      const script = document.createElement('script');
+      script.src = 'https://www.jdoodle.com/assets/embed/v1/navigator.js';
+      script.async = true;
+      host?.appendChild(script);
+
+      btn.textContent = 'Runner loaded';
+      btn.disabled = true;
+      btn.classList.add('opacity-60', 'cursor-default');
+    });
+  });
+</script>

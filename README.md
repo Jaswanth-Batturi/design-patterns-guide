@@ -8,9 +8,12 @@ An interactive guide to software design patterns — real-life analogies, Java e
 
 ## Features
 
-- **5 patterns** (Observer, Strategy, Factory, Singleton, Decorator) — more coming
+- **All 23 GoF patterns** — full creational, structural, and behavioral catalog
 - **Real-life analogies** before diving into code
-- **Before/after Java** with copy button
+- **Syntax-highlighted Java** (Shiki) with before/after toggle
+- **JDoodle runner** — load interactive Java console per pattern
+- **Animated analogy cards** with real-life explanations
+- **Open Graph image** for social sharing
 - **Quick quizzes** per pattern
 - **Pattern Finder** — describe your problem, get suggestions
 - **100% free hosting** on GitHub Pages

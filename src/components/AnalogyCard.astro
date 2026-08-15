@@ -1,0 +1,61 @@
+---
+interface Props {
+  icon: string;
+  analogy: string;
+  title?: string;
+}
+
+const { icon, analogy, title = 'Real-life analogy' } = Astro.props;
+---
+
+<section class="analogy-card rounded-2xl border border-slate-800 bg-indigo-950/30 p-6 overflow-hidden relative">
+  <div class="analogy-float absolute -right-4 -top-4 text-6xl opacity-20 select-none pointer-events-none" aria-hidden="true">
+    {icon}
+  </div>
+  <div class="analogy-content flex gap-4 items-start">
+    <span class="analogy-icon flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/20 text-3xl ring-1 ring-indigo-500/30" aria-hidden="true">
+      {icon}
+    </span>
+    <div>
+      <h2 class="text-lg font-semibold text-indigo-300">{title}</h2>
+      <p class="mt-3 leading-relaxed text-slate-300">{analogy}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .analogy-card {
+    animation: fade-up 0.6s ease-out both;
+  }
+  .analogy-icon {
+    animation: gentle-bob 3s ease-in-out infinite;
+  }
+  .analogy-float {
+    animation: drift 8s ease-in-out infinite;
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes gentle-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(-8px, 8px) rotate(-6deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .analogy-card,
+    .analogy-icon,
+    .analogy-float {
+      animation: none;
+    }
+  }
+</style>

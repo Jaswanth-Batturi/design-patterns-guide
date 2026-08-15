@@ -5,9 +5,11 @@ import { patternPath } from '../utils/paths';
 const examples = [
   { label: 'Notify listeners', text: 'I need to notify email, SMS, and push when order status changes' },
   { label: 'Payment methods', text: 'Checkout supports card, UPI, and cash payment methods' },
-  { label: 'Create objects', text: 'I need a factory to create exporter objects without new() everywhere' },
-  { label: 'Single config', text: 'Only one shared global config instance for the whole app' },
-  { label: 'Wrap features', text: 'Add buffer and compression layers by wrapping streams' },
+  { label: 'Undo actions', text: 'I need command objects with undo and redo for user actions' },
+  { label: 'Adapter legacy', text: 'Adapt an old legacy API to our new interface' },
+  { label: 'Facade API', text: 'One simple facade over a complex payment subsystem' },
+  { label: 'State machine', text: 'Object behavior changes based on traffic light states' },
+  { label: 'Flyweight cache', text: 'Share flyweight objects to save memory for repeated glyphs' },
 ];
 
 const patternUrls = Object.fromEntries(patterns.map((p) => [p.slug, patternPath(p.slug)]));

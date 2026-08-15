@@ -12,6 +12,7 @@ const siteTitle = 'Patterns in Practice';
 const home = sitePath();
 const patternsAnchor = sitePath('#patterns');
 const finderAnchor = sitePath('#finder');
+const ogImage = new URL(sitePath('og-image.png'), Astro.site).href;
 ---
 
 <!doctype html>
@@ -23,6 +24,9 @@ const finderAnchor = sitePath('#finder');
     <meta property="og:title" content={title === siteTitle ? title : `${title} · ${siteTitle}`} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
     <link rel="icon" type="image/svg+xml" href={sitePath('favicon.svg')} />
     <title>{title === siteTitle ? title : `${title} · ${siteTitle}`}</title>
   </head>

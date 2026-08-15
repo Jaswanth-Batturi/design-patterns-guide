@@ -2,8 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CodeToggle from '../../components/CodeToggle.astro';
 import Quiz from '../../components/Quiz.astro';
+import AnalogyCard from '../../components/AnalogyCard.astro';
+import JdoodleRunner from '../../components/JdoodleRunner.astro';
 import { patterns, getPattern, categoryLabels } from '../../data/patterns';
 import { patternPath, sitePath } from '../../utils/paths';
+import { toRunnableJava } from '../../utils/runnable';
 
 export function getStaticPaths() {
   return patterns.map((pattern) => ({
@@ -20,6 +23,7 @@ const related = pattern.relatedPatterns
 const patternIndex = patterns.findIndex((p) => p.slug === pattern.slug);
 const prevPattern = patternIndex > 0 ? patterns[patternIndex - 1] : null;
 const nextPattern = patternIndex < patterns.length - 1 ? patterns[patternIndex + 1] : null;
+const runnableCode = toRunnableJava(pattern.codeAfter);
 
 const categoryColor: Record<string, string> = {
   creational: 'text-emerald-400',
@@ -48,10 +52,7 @@ const categoryColor: Record<string, string> = {
   </header>
 
   <div class="space-y-10">
-    <section class="rounded-2xl border border-slate-800 bg-indigo-950/30 p-6">
-      <h2 class="text-lg font-semibold text-indigo-300">Real-life analogy</h2>
-      <p class="mt-3 leading-relaxed text-slate-300">{pattern.analogy}</p>
-    </section>
+    <AnalogyCard icon={pattern.analogyIcon} analogy={pattern.analogy} />
 
     <section>
       <h2 class="text-xl font-semibold text-white">The problem</h2>
@@ -90,9 +91,10 @@ const categoryColor: Record<string, string> = {
 
     <section>
       <h2 class="text-xl font-semibold text-white">Java code</h2>
-      <p class="mt-2 text-sm text-slate-400">Toggle between messy code and the pattern applied.</p>
-      <div class="mt-4">
+      <p class="mt-2 text-sm text-slate-400">Syntax-highlighted — toggle messy vs clean, then copy or run.</p>
+      <div class="mt-4 space-y-4">
         <CodeToggle before={pattern.codeBefore} after={pattern.codeAfter} />
+        <JdoodleRunner code={runnableCode} />
       </div>
     </section>
 
