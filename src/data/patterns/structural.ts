@@ -5,9 +5,10 @@ export const structuralPatterns: Pattern[] = [
     slug: 'adapter',
     name: 'Adapter',
     category: 'structural',
-    oneLiner: 'Make incompatible interfaces work together without changing either side.',
+    oneLiner: 'Wrap a legacy or third-party API so it matches the interface your code expects — like a USB‑C to HDMI dongle.',
     analogy:
       'A travel plug adapter: your US charger has two flat prongs, but the wall outlet expects round pins. The adapter converts one shape into the other so both sides work — neither the charger nor the outlet changes.',
+    analogyIcon: '🔌',
     problem:
       'You need to use an existing class or third-party library, but its interface does not match what your code expects. Rewriting either side is expensive, risky, or impossible.',
     solution:
@@ -101,9 +102,10 @@ socket.connect(new ChargerAdapter(new FlatCharger()));`,
     slug: 'bridge',
     name: 'Bridge',
     category: 'structural',
-    oneLiner: 'Split abstraction from implementation so both can vary independently.',
+    oneLiner: 'Split abstraction from implementation — same TV remote, different TV brands behind it.',
     analogy:
       'A TV remote (abstraction) and the TV brand (implementation): Sony, Samsung, or LG remotes can all use the same button layout, while each brand handles signals differently behind the scenes.',
+    analogyIcon: '📺',
     problem:
       'You have multiple dimensions of variation — e.g., shapes (circle, square) and rendering engines (vector, raster). Subclassing every combination (VectorCircle, RasterCircle, VectorSquare…) leads to an explosion of classes.',
     solution:
@@ -202,9 +204,10 @@ circle.draw();`,
     slug: 'composite',
     name: 'Composite',
     category: 'structural',
-    oneLiner: 'Treat individual objects and groups of objects the same way.',
+    oneLiner: 'Treat files and folders the same — one delete on a folder removes everything inside.',
     analogy:
       'A folder on your computer: it can hold files (leaves) and subfolders (containers). You open, move, or delete a folder the same way whether it contains one file or a thousand nested items.',
+    analogyIcon: '📁',
     problem:
       'You have a tree structure — org charts, UI components, file systems — where containers and leaves need similar operations. Client code branches on "is this a group or a single item?" everywhere.',
     solution:
@@ -297,9 +300,10 @@ project.render();`,
     slug: 'decorator',
     name: 'Decorator',
     category: 'structural',
-    oneLiner: 'Add responsibilities to an object dynamically without subclassing every combination.',
+    oneLiner: 'Stack features at runtime — insurance addons on a base plan, not a subclass per combo.',
     analogy:
       'Coffee shop add-ons: start with plain coffee, then add milk, caramel, whipped cream — each layer wraps the drink and adds something on top.',
+    analogyIcon: '☕',
     problem:
       'You need many combinations of features (buffered + compressed stream, pizza with various toppings). Subclass explosion: BufferedGzipFileStream, GzipBufferedFileStream, etc.',
     solution:
@@ -373,9 +377,10 @@ Pizza order = new Olives(new Cheese(new PlainPizza()));`,
     slug: 'facade',
     name: 'Facade',
     category: 'structural',
-    oneLiner: 'Provide a simple interface to a complex subsystem.',
+    oneLiner: 'One “Order food” button hides kitchen, payment, and delivery behind a single call.',
     analogy:
       'A hotel concierge: you ask for "dinner reservations and a taxi at 7" — one request. Behind the scenes they call the restaurant, coordinate timing, and book the car. You don\'t deal with each service separately.',
+    analogyIcon: '🏨',
     problem:
       'A subsystem has many classes, dependencies, and steps. Client code must know the right order of calls, which objects to create, and how subsystems interact — leading to fragile, scattered integration logic.',
     solution:
@@ -472,9 +477,10 @@ theater.watchMovie("Inception");`,
     slug: 'flyweight',
     name: 'Flyweight',
     category: 'structural',
-    oneLiner: 'Share common state across many objects to save memory.',
+    oneLiner: 'Share heavy data (glyphs, textures) across many objects — one “A”, thousands of positions.',
     analogy:
       'A library lending the same copy of a bestseller to hundreds of readers: each reader has their own loan record (extrinsic), but they all reference one physical book (shared intrinsic state).',
+    analogyIcon: '🔤',
     problem:
       'You create thousands or millions of similar objects (map tiles, text glyphs, game trees). Each object duplicates identical data (color, sprite, font metrics), wasting memory and slowing allocation.',
     solution:
@@ -570,9 +576,10 @@ public class Tree {
     slug: 'proxy',
     name: 'Proxy',
     category: 'structural',
-    oneLiner: 'Stand in for another object to control access, lazy loading, or add behavior.',
+    oneLiner: 'Stand in for the real object — thumbnail before HD video, lazy load, or access control.',
     analogy:
       'A personal assistant: colleagues ask the assistant to schedule meetings with the CEO. The assistant checks availability, filters requests, and only involves the CEO when needed — same role, controlled access.',
+    analogyIcon: '🛡️',
     problem:
       'You need to control access to an object — lazy initialization, permission checks, logging, remote calls — but you want clients to use the same interface as if they talked to the real object directly.',
     solution:

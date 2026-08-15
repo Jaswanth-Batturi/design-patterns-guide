@@ -1,6 +1,7 @@
 ---
 import type { Pattern } from '../data/patterns';
 import { categoryLabels } from '../data/patterns';
+import { getIllustration } from '../data/patterns/pattern-illustrations';
 import { patternPath } from '../utils/paths';
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 const { pattern } = Astro.props;
 const href = patternPath(pattern.slug);
+const illo = getIllustration(pattern.slug, pattern.analogyIcon);
 const categoryColor: Record<string, string> = {
   creational: 'text-emerald-400/90',
   structural: 'text-sky-400/90',
@@ -21,7 +23,12 @@ const categoryColor: Record<string, string> = {
   class="group block rounded-xl border border-slate-800/80 bg-slate-900/40 p-4 transition hover:border-slate-600 hover:bg-slate-900/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
 >
   <div class="flex items-start gap-3">
-    <span class="text-xl leading-none shrink-0" aria-hidden="true">{pattern.analogyIcon}</span>
+    <div
+      class="shrink-0 w-14 h-14 rounded-lg border border-slate-800 bg-indigo-950/30 p-2 flex items-center justify-center overflow-hidden"
+      aria-hidden="true"
+    >
+      <div class="w-full pointer-events-none" set:html={illo.svg} />
+    </div>
     <div class="min-w-0 flex-1">
       <div class="flex items-center justify-between gap-2">
         <h3 class="font-medium text-white group-hover:text-indigo-300 transition-colors">{pattern.name}</h3>

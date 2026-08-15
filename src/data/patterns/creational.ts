@@ -5,9 +5,9 @@ export const creationalPatterns: Pattern[] = [
     slug: 'singleton',
     name: 'Singleton',
     category: 'creational',
-    oneLiner: 'One shared instance for the whole app — like one electric meter for every room.',
+    oneLiner: 'One shared instance for the whole app — like one Wi‑Fi network every service joins.',
     analogy:
-      'One manager per store, one president per country, one remote paired to one TV — there should only be one authoritative instance.',
+      'One Wi‑Fi router for the house: every device uses the same network name and password — not a separate router per room with conflicting settings.',
     analogyIcon: '🔑',
     problem:
       'Some resources must be shared globally (config, connection pool, logger). Multiple instances cause inconsistent state, wasted memory, or conflicting access to scarce resources.',
@@ -86,7 +86,7 @@ public class App {
     slug: 'factory',
     name: 'Factory Method',
     category: 'creational',
-    oneLiner: 'Let subclasses or dedicated creators decide which concrete product to instantiate.',
+    oneLiner: 'Barista takes your order — kitchen picks the concrete class to instantiate.',
     analogy:
       'A restaurant menu: you order "burger" — the kitchen decides which recipe and ingredients to use. You don\'t walk into the kitchen to assemble it yourself.',
     analogyIcon: '🍽️',

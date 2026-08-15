@@ -511,7 +511,7 @@ public class History {
     slug: 'observer',
     name: 'Observer',
     category: 'behavioral',
-    oneLiner: 'One thing changes → everyone who cares gets told automatically.',
+    oneLiner: 'Price ticker pushes alerts to subscribers — no polling, add channels without editing the ticker.',
     analogy:
       'Think of a newsletter: you subscribe once, and whenever we publish a new article, you get an email. You do not keep checking the website — the publisher notifies you.',
     analogyIcon: '📬',

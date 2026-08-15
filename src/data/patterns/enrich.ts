@@ -66,11 +66,9 @@ export function enrichPattern(pattern: Pattern): EnrichedPattern {
 
   return {
     ...pattern,
-    sceneSteps: override?.sceneSteps ? tuple3(override.sceneSteps) : story.scene,
-    withoutPatternPains: override?.withoutPatternPains
-      ? tuple3(override.withoutPatternPains)
-      : story.without,
-    withPatternWins: override?.withPatternWins ? tuple3(override.withPatternWins) : story.with,
+    sceneSteps: story.scene,
+    withoutPatternPains: story.without,
+    withPatternWins: story.with,
     codeBridge: story.codeBridge,
     runExpect: deriveRunExpect(runDemo),
     tryItSteps: override?.tryItSteps ?? defaultTryItSteps,

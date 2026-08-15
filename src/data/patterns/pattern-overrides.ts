@@ -34,9 +34,9 @@ export const patternEnrichment: Record<string, PatternEnrichment> = {
       'Without Singleton, anyone can `new AppConfig()` and settings drift. With it, `getInstance()` is the only door — same object every time.',
     tryItSteps: [
       'Wait until the editor loads (spinner disappears).',
-      'Confirm the tab says SingletonDemo.java (one file — all code together).',
-      'Click Run ▶ inside the dark editor box.',
-      'You should see Theme is now: dark and Same object? true',
+      'Confirm one Java file with main() is loaded.',
+      'Click Run ▶ inside the editor.',
+      'Expect Theme is now: dark and Same object? true — one shared config, like one Wi‑Fi network.',
     ],
     codeBeforeHint: 'Anyone can create a new config — settings can disagree.',
     codeAfterHint: 'Only one instance exists; everyone uses getInstance().',
