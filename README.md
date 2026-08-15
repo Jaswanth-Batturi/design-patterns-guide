@@ -2,15 +2,9 @@
 
 An interactive guide to software design patterns — real-life analogies, Java examples, quizzes, and a pattern finder.
 
-**Repo:** [github.com/jaswanth-batturi_navi/design-patterns-guide](https://github.com/jaswanth-batturi_navi/design-patterns-guide)
+**Live site:** [jaswanth-batturi.github.io/design-patterns-guide](https://jaswanth-batturi.github.io/design-patterns-guide/)
 
-### Free hosting options
-
-| Platform | Cost | Notes |
-|----------|------|-------|
-| [Cloudflare Pages](https://pages.cloudflare.com) | Free | Connect GitHub repo, build `npm run build`, output `dist` |
-| [GitHub Pages](https://pages.github.com) | Free | Works on personal public repos (`Jaswanth-Batturi` account) |
-| Local | Free | `npm run dev` |
+**Repo:** [github.com/Jaswanth-Batturi/design-patterns-guide](https://github.com/Jaswanth-Batturi/design-patterns-guide)
 
 ## Features
 
@@ -30,16 +24,13 @@ npm run dev
 
 Open [http://localhost:4321/design-patterns-guide](http://localhost:4321/design-patterns-guide)
 
-### Deploy to Cloudflare Pages (recommended, free)
+### Deploy to GitHub Pages
 
-1. Sign in at [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages** → **Create**
-2. Connect your GitHub repo
-3. Build settings: **Framework preset** = Astro, or manual:
-   - Build command: `npm run build`
-   - Build output: `dist`
-4. Deploy — you get a free `*.pages.dev` URL
+1. Push to `main` on this repo
+2. Go to **Settings → Pages → Build and deployment → Source: GitHub Actions**
+3. The workflow deploys automatically on each push to `main`
 
-Update `site` and `base` in `astro.config.mjs` if your URL differs from GitHub Pages defaults.
+Site URL: `https://jaswanth-batturi.github.io/design-patterns-guide/`
 
 ## Build
 
