@@ -17,9 +17,7 @@ export function getStaticPaths() {
 }
 
 const pattern = Astro.props.pattern;
-const related = pattern.relatedPatterns
-  .map((slug) => getPattern(slug))
-  .filter(Boolean);
+const related = pattern.relatedPatterns.map((slug) => getPattern(slug)).filter(Boolean);
 
 const patternIndex = patterns.findIndex((p) => p.slug === pattern.slug);
 const prevPattern = patternIndex > 0 ? patterns[patternIndex - 1] : null;
@@ -34,9 +32,9 @@ const categoryColor: Record<string, string> = {
 const sectionLinks = [
   { id: 'scene', label: 'Real life' },
   { id: 'tradeoffs', label: 'Tradeoffs' },
-  { id: 'decision', label: 'When to use' },
+  { id: 'decision', label: 'When' },
   { id: 'code', label: 'Code' },
-  { id: 'try-it', label: 'Try it' },
+  { id: 'try-it', label: 'Run' },
   { id: 'quiz', label: 'Quiz' },
 ];
 ---
@@ -55,53 +53,58 @@ const sectionLinks = [
       <span class="text-3xl" aria-hidden="true">{pattern.analogyIcon}</span>
       <h1 class="text-3xl font-bold text-white sm:text-4xl">{pattern.name}</h1>
       <span class={`text-sm font-medium ${categoryColor[pattern.category]}`}>
-        {categoryLabels[pattern.category]} · {categoryHints[pattern.category]}
+        {categoryLabels[pattern.category]}
       </span>
     </div>
-    <p class="mt-4 text-xl leading-relaxed text-slate-200">{pattern.oneLiner}</p>
+    <p class="mt-4 text-lg leading-relaxed text-slate-300">{pattern.oneLiner}</p>
+    <p class="mt-2 text-sm text-indigo-300/90">{pattern.codeBridge}</p>
   </header>
 
   <nav
     class="sticky top-[65px] z-40 -mx-4 mb-8 flex gap-2 overflow-x-auto border-b border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur-md sm:mx-0 sm:rounded-xl sm:border sm:px-3"
     aria-label="Page sections"
   >
-    {sectionLinks.map((link, i) => (
+    {sectionLinks.map((link) => (
       <a
         href={`#${link.id}`}
         class="section-jump shrink-0 rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-400 transition-colors hover:border-indigo-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
       >
-        {i + 1}. {link.label}
+        {link.label}
       </a>
     ))}
   </nav>
 
-  <div class="space-y-12">
+  <div class="space-y-10">
     <div id="scene" class="scroll-mt-36">
-      <SceneVisual icon={pattern.analogyIcon} title={pattern.name} steps={pattern.sceneSteps} />
+      <SceneVisual icon={pattern.analogyIcon} steps={pattern.sceneSteps} />
     </div>
 
     <div id="tradeoffs" class="scroll-mt-36">
-      <TradeoffCompare withoutPains={pattern.withoutPatternPains} withWins={pattern.withPatternWins} />
+      <TradeoffCompare
+        withoutPains={pattern.withoutPatternPains}
+        withWins={pattern.withPatternWins}
+        codeBridge={pattern.codeBridge}
+      />
     </div>
 
-    <section id="decision" class="scroll-mt-36 grid gap-4 sm:grid-cols-2">
-      <div class="rounded-2xl border border-slate-700/80 bg-slate-900/40 p-5">
-        <h2 class="font-semibold text-white">Use it when…</h2>
-        <ul class="mt-3 space-y-2 text-sm text-slate-300">
-          {pattern.whenToUse.map((item) => (
+    <section id="decision" class="scroll-mt-36 grid gap-3 sm:grid-cols-2">
+      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5">
+        <h2 class="text-sm font-semibold text-white">Use when</h2>
+        <ul class="mt-3 space-y-2 text-sm text-slate-400">
+          {pattern.whenToUse.slice(0, 4).map((item) => (
             <li class="flex gap-2">
-              <span class="text-emerald-500 shrink-0">✓</span>
+              <span class="text-emerald-500 shrink-0">+</span>
               <span>{item}</span>
             </li>
           ))}
         </ul>
       </div>
-      <div class="rounded-2xl border border-slate-700/80 bg-slate-900/40 p-5">
-        <h2 class="font-semibold text-white">Skip it when…</h2>
-        <ul class="mt-3 space-y-2 text-sm text-slate-300">
-          {pattern.whenNotToUse.map((item) => (
+      <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5">
+        <h2 class="text-sm font-semibold text-white">Skip when</h2>
+        <ul class="mt-3 space-y-2 text-sm text-slate-400">
+          {pattern.whenNotToUse.slice(0, 3).map((item) => (
             <li class="flex gap-2">
-              <span class="text-rose-500 shrink-0">✗</span>
+              <span class="text-rose-500 shrink-0">−</span>
               <span>{item}</span>
             </li>
           ))}
@@ -110,6 +113,7 @@ const sectionLinks = [
     </section>
 
     <div id="code" class="scroll-mt-36">
+      <p class="mb-3 text-sm text-slate-500">Code — same story as above. Start with the problem tab.</p>
       <CodeToggle
         before={pattern.codeBefore}
         after={pattern.codeAfter}
@@ -121,25 +125,24 @@ const sectionLinks = [
     </div>
 
     <div id="try-it" class="scroll-mt-36">
-      <CodeRunner code={pattern.runDemo} patternName={pattern.name} steps={pattern.tryItSteps} />
+      <CodeRunner code={pattern.runDemo} runExpect={pattern.runExpect} />
     </div>
 
     <div id="quiz" class="scroll-mt-36">
-      <Quiz questions={pattern.quiz} patternName={pattern.name} />
+      <Quiz questions={pattern.quiz} />
     </div>
 
     {
       related.length > 0 && (
-        <section class="scroll-mt-36">
-          <h2 class="text-xl font-semibold text-white">Often confused with…</h2>
-          <p class="mt-1 text-sm text-slate-500">Related patterns worth comparing next.</p>
-          <div class="mt-4 flex flex-wrap gap-3">
+        <section>
+          <h2 class="text-base font-semibold text-white">Compare next</h2>
+          <div class="mt-3 flex flex-wrap gap-2">
             {related.map((p) => (
               <a
                 href={patternPath(p!.slug)}
-                class="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-indigo-500 hover:text-white transition-colors"
+                class="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-400 hover:border-indigo-500 hover:text-white transition-colors"
               >
-                {p!.name} →
+                {p!.name}
               </a>
             ))}
           </div>
@@ -147,34 +150,18 @@ const sectionLinks = [
       )
     }
 
-    <nav class="flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 pt-8" aria-label="Pattern navigation">
-      {
-        prevPattern ? (
-          <a href={patternPath(prevPattern.slug)} class="text-sm text-slate-400 hover:text-indigo-300 transition-colors">
-            ← {prevPattern.name}
-          </a>
-        ) : (
-          <span />
-        )
-      }
-      {
-        nextPattern && (
-          <a href={patternPath(nextPattern.slug)} class="text-sm text-slate-400 hover:text-indigo-300 transition-colors">
-            {nextPattern.name} →
-          </a>
-        )
-      }
+    <nav class="flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 pt-6 text-sm text-slate-500" aria-label="Pattern navigation">
+      {prevPattern ? (
+        <a href={patternPath(prevPattern.slug)} class="hover:text-indigo-300 transition-colors">← {prevPattern.name}</a>
+      ) : (
+        <span />
+      )}
+      {nextPattern && (
+        <a href={patternPath(nextPattern.slug)} class="hover:text-indigo-300 transition-colors">{nextPattern.name} →</a>
+      )}
     </nav>
   </div>
 </BaseLayout>
-
-<style>
-  .section-jump[aria-current='true'] {
-    border-color: rgb(99 102 241);
-    background: rgb(79 70 229 / 0.25);
-    color: white;
-  }
-</style>
 
 <script>
   const nav = document.querySelector('nav[aria-label="Page sections"]');
@@ -184,14 +171,17 @@ const sectionLinks = [
   const syncActive = () => {
     if (!links) return;
     let active = ids[0];
-    const offset = 140;
     for (const id of ids) {
       const el = document.getElementById(id);
-      if (el && el.getBoundingClientRect().top <= offset) active = id;
+      if (el && el.getBoundingClientRect().top <= 140) active = id;
     }
     links.forEach((link) => {
       const href = link.getAttribute('href')?.slice(1);
-      link.setAttribute('aria-current', href === active ? 'true' : 'false');
+      const on = href === active;
+      link.setAttribute('aria-current', on ? 'true' : 'false');
+      link.classList.toggle('border-indigo-500', on);
+      link.classList.toggle('bg-indigo-600/25', on);
+      link.classList.toggle('text-white', on);
     });
   };
 

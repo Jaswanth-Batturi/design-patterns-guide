@@ -3,46 +3,26 @@ import { javaToCompilerFiles, javaMainClassName } from '../utils/java-files';
 
 interface Props {
   code: string;
-  patternName: string;
-  steps: string[];
+  runExpect: string;
 }
 
-const { code, patternName, steps } = Astro.props;
+const { code, runExpect } = Astro.props;
 const frameId = `oc-runner-${Math.random().toString(36).slice(2, 9)}`;
 const files = javaToCompilerFiles(code);
-const mainClass = javaMainClassName(code);
 const embedSrc =
   'https://onecompiler.com/embed/java?listenToEvents=true&hideLanguageSelection=true&theme=dark&hideTitle=true&hideNewFileOption=true';
 ---
 
-<section class="rounded-2xl border border-indigo-500/20 bg-slate-900/40 overflow-hidden" data-code-runner>
-  <div class="border-b border-slate-800 bg-indigo-950/30 px-4 py-4 sm:px-5">
-    <h3 class="text-base font-semibold text-white">Your turn — run {patternName} in Java</h3>
-    <p class="mt-1 text-sm text-slate-400">
-      Short demo with <code class="text-indigo-300">main()</code> — focus on what prints when you Run, not memorizing syntax.
-    </p>
-    <ol class="mt-4 space-y-2 text-sm text-slate-300 list-none">
-      {steps.map((step, i) => (
-        <li class="flex gap-3">
-          <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
-            {i + 1}
-          </span>
-          <span class="pt-0.5">{step}</span>
-        </li>
-      ))}
-    </ol>
-    <p class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-3 text-xs text-amber-200/90">
-      <span class="flex items-center gap-2 font-semibold text-amber-300">
-        <span class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-600 text-white text-[10px]">▶ Run</span>
-        Inside the editor below
-      </span>
-      <span class="text-amber-200/80">
-        Top-right of the dark gray box. File tab should read <strong class="text-amber-100">{mainClass}.java</strong> — that file has <code class="text-amber-100">main()</code>.
-      </span>
+<section class="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden" data-code-runner>
+  <div class="border-b border-slate-800 px-4 py-4 sm:px-5">
+    <h3 class="text-base font-semibold text-white">Run it</h3>
+    <p class="mt-2 text-sm text-slate-400">
+      Click <span class="font-medium text-emerald-400">Run ▶</span> inside the editor below.
+      Expect: <span class="text-slate-300">{runExpect}</span>
     </p>
   </div>
 
-  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-2">
+  <div class="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-2">
     <span data-runner-status class="text-xs text-slate-500" role="status">Loading editor…</span>
     <a
       href="https://onecompiler.com/java"
@@ -50,23 +30,22 @@ const embedSrc =
       rel="noopener noreferrer"
       class="text-xs text-indigo-400 hover:text-indigo-300"
     >
-      Stuck? Open full editor ↗
+      Open full editor ↗
     </a>
   </div>
 
-  <div class="relative min-h-[480px] bg-[#1e1e1e]">
+  <div class="relative min-h-[420px] bg-[#1e1e1e]">
     <div
       data-runner-loading
-      class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-sm text-slate-400 bg-slate-950"
+      class="absolute inset-0 z-10 flex items-center justify-center text-sm text-slate-400 bg-slate-950"
     >
-      <span class="inline-block h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" aria-hidden="true"></span>
-      Loading Java editor…
+      <span class="inline-block h-7 w-7 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" aria-hidden="true"></span>
     </div>
     <iframe
       id={frameId}
-      title="Java code runner (OneCompiler)"
+      title="Java code runner"
       src={embedSrc}
-      class="w-full min-h-[480px] border-0 bg-[#1e1e1e] opacity-0 transition-opacity duration-500"
+      class="w-full min-h-[420px] border-0 bg-[#1e1e1e] opacity-0 transition-opacity duration-500"
       data-oc-frame
       loading="lazy"
       allow="clipboard-write"
@@ -79,25 +58,17 @@ const embedSrc =
   const section = iframe?.closest('[data-code-runner]');
   const loading = section?.querySelector('[data-runner-loading]');
   const status = section?.querySelector('[data-runner-status]');
-
   let populated = false;
 
   const populateEditor = () => {
     if (!iframe || populated) return;
     populated = true;
-    iframe.contentWindow?.postMessage(
-      {
-        eventType: 'populateCode',
-        language: 'java',
-        files,
-      },
-      '*',
-    );
+    iframe.contentWindow?.postMessage({ eventType: 'populateCode', language: 'java', files }, '*');
     loading?.classList.add('hidden');
     iframe.classList.remove('opacity-0');
     iframe.classList.add('opacity-100');
     if (status) {
-      status.textContent = 'Editor ready — click green Run ▶ inside the box below';
+      status.textContent = 'Ready — Run ▶ is inside the editor';
       status.classList.add('text-emerald-400/90');
     }
   };
@@ -105,8 +76,7 @@ const embedSrc =
   if (iframe) {
     iframe.addEventListener('load', () => {
       setTimeout(populateEditor, 600);
-      setTimeout(populateEditor, 1800);
-      setTimeout(populateEditor, 3500);
+      setTimeout(populateEditor, 2000);
     });
   }
 </script>

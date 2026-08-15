@@ -3,86 +3,159 @@ import type { QuizQuestion } from '../data/patterns';
 
 interface Props {
   questions: QuizQuestion[];
-  patternName: string;
 }
 
-const { questions, patternName } = Astro.props;
+const { questions } = Astro.props;
 const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
 ---
 
-<section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6" data-quiz={quizId} data-questions={JSON.stringify(questions)}>
-  <h2 class="text-xl font-semibold text-white">Check your understanding</h2>
-  <p class="mt-1 text-sm text-slate-400">{questions.length} quick questions — one answer each, then read the explanation.</p>
-  <div class="mt-6 space-y-8" data-quiz-body></div>
-  <p class="mt-6 text-sm text-slate-500" data-quiz-score hidden></p>
+<section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 sm:p-6" data-quiz={quizId} data-questions={JSON.stringify(questions)}>
+  <h2 class="text-lg font-semibold text-white">Quick quiz</h2>
+  <p class="mt-1 text-sm text-slate-400">Tap an answer — see right/wrong immediately.</p>
+
+  <div class="mt-4 flex gap-2" data-quiz-progress aria-label="Question progress"></div>
+  <div class="mt-4" data-quiz-body></div>
+
+  <div class="mt-4 hidden rounded-xl border border-slate-700 bg-slate-950/50 p-4" data-quiz-feedback>
+    <p class="text-sm font-medium text-white" data-quiz-feedback-title></p>
+    <p class="mt-1 text-sm text-slate-400" data-quiz-feedback-text></p>
+    <button
+      type="button"
+      data-quiz-next
+      class="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+    >
+      Next question
+    </button>
+  </div>
+
+  <p class="mt-4 text-sm font-medium hidden" data-quiz-score></p>
 </section>
 
 <script>
   document.querySelectorAll('[data-quiz]').forEach((root) => {
-    const questions = JSON.parse(root.getAttribute('data-questions') ?? '[]');
+    const questions = JSON.parse(root.getAttribute('data-questions') ?? '[]') as Array<{
+      question: string;
+      options: string[];
+      correctIndex: number;
+      explanation: string;
+    }>;
     const body = root.querySelector('[data-quiz-body]');
+    const progress = root.querySelector('[data-quiz-progress]');
+    const feedback = root.querySelector('[data-quiz-feedback]');
+    const feedbackTitle = root.querySelector('[data-quiz-feedback-title]');
+    const feedbackText = root.querySelector('[data-quiz-feedback-text]');
+    const nextBtn = root.querySelector('[data-quiz-next]');
     const scoreEl = root.querySelector('[data-quiz-score]');
+
+    let index = 0;
     let correct = 0;
-    let answered = 0;
 
-    questions.forEach((q: { question: string; options: string[]; correctIndex: number; explanation: string }, index: number) => {
-      const block = document.createElement('div');
-      block.className = 'space-y-3';
-      block.innerHTML = `<p class="font-medium text-slate-200">${index + 1}. ${q.question}</p>`;
+    if (progress) progress.innerHTML = '';
+    questions.forEach((_, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'h-2 w-8 rounded-full bg-slate-700 transition-colors';
+      dot.setAttribute('data-dot', String(i));
+      progress.appendChild(dot);
+    });
 
-      const options = document.createElement('div');
-      options.className = 'grid gap-2 sm:grid-cols-2';
+    const updateDots = () => {
+      progress?.querySelectorAll('[data-dot]').forEach((dot, i) => {
+        dot.classList.toggle('bg-indigo-500', i === index);
+        dot.classList.toggle('bg-slate-700', i !== index);
+        if (i < index) dot.classList.add('bg-emerald-600/80');
+      });
+    };
+
+    const showQuestion = () => {
+      if (!body) return;
+      feedback?.classList.add('hidden');
+      body.innerHTML = '';
+      const q = questions[index];
+      const title = document.createElement('p');
+      title.className = 'text-base font-medium text-slate-100';
+      title.textContent = q.question;
+      body.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.className = 'mt-4 grid gap-2 sm:grid-cols-2';
       const buttons: HTMLButtonElement[] = [];
 
-      q.options.forEach((option: string, optIndex: number) => {
+      q.options.forEach((option, optIndex) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className =
-          'rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-left text-sm text-slate-300 hover:border-indigo-500/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500';
-        btn.textContent = option;
+          'quiz-option group flex items-start gap-3 rounded-xl border-2 border-slate-700 bg-slate-950/60 px-4 py-3 text-left text-sm text-slate-300 transition-all hover:border-indigo-500/50 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500';
+        btn.innerHTML = `<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-slate-600 text-[10px] text-slate-500 group-hover:border-indigo-400">?</span><span>${option}</span>`;
         buttons.push(btn);
 
         btn.addEventListener('click', () => {
-          if (block.dataset.answered) return;
-          block.dataset.answered = 'true';
-          answered += 1;
-
-          const isCorrect = optIndex === q.correctIndex;
-          if (isCorrect) {
-            correct += 1;
-            btn.classList.add('border-emerald-500/60', 'bg-emerald-500/10', 'text-emerald-300');
-          } else {
-            btn.classList.add('border-rose-500/60', 'bg-rose-500/10', 'text-rose-300');
-            buttons[q.correctIndex].classList.add('border-emerald-500/60', 'bg-emerald-500/10', 'text-emerald-300');
-          }
-
+          if (btn.disabled) return;
           buttons.forEach((b) => {
             b.disabled = true;
-            b.classList.add('opacity-80', 'cursor-default');
-            if (!b.classList.contains('border-emerald-500/60')) {
-              b.classList.remove('hover:border-indigo-500/60');
+            b.classList.add('cursor-default');
+          });
+
+          const isCorrect = optIndex === q.correctIndex;
+          if (isCorrect) correct += 1;
+
+          buttons.forEach((b, i) => {
+            const circle = b.querySelector('span');
+            if (i === q.correctIndex) {
+              b.classList.add('border-emerald-500', 'bg-emerald-500/15', 'text-emerald-200');
+              if (circle) {
+                circle.textContent = '✓';
+                circle.className =
+                  'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs text-white font-bold';
+              }
+            } else if (i === optIndex && !isCorrect) {
+              b.classList.add('border-rose-500', 'bg-rose-500/15', 'text-rose-200');
+              if (circle) {
+                circle.textContent = '✗';
+                circle.className =
+                  'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs text-white font-bold';
+              }
+            } else {
+              b.classList.add('opacity-50');
             }
           });
 
-          const feedback = document.createElement('p');
-          feedback.className = 'mt-2 text-sm text-slate-400';
-          feedback.textContent = q.explanation;
-          block.appendChild(feedback);
+          feedbackTitle!.textContent = isCorrect ? 'Correct!' : 'Not quite';
+          feedbackText!.textContent = q.explanation;
+          feedback?.classList.remove('hidden');
 
-          if (scoreEl && answered === questions.length) {
-            scoreEl.hidden = false;
-            const pct = Math.round((correct / questions.length) * 100);
-            scoreEl.textContent = `You got ${correct} of ${questions.length} correct (${pct}%).`;
-            if (pct === 100) {
-              scoreEl.classList.add('text-emerald-400');
-            }
+          if (index === questions.length - 1) {
+            nextBtn!.textContent = 'See score';
           }
         });
-        options.appendChild(btn);
+
+        grid.appendChild(btn);
       });
 
-      block.appendChild(options);
-      body?.appendChild(block);
+      body.appendChild(grid);
+      updateDots();
+    };
+
+    nextBtn?.addEventListener('click', () => {
+      if (index < questions.length - 1) {
+        index += 1;
+        showQuestion();
+      } else {
+        feedback?.classList.add('hidden');
+        body!.innerHTML = '';
+        if (scoreEl) {
+          scoreEl.hidden = false;
+          scoreEl.classList.remove('hidden');
+          const pct = Math.round((correct / questions.length) * 100);
+          scoreEl.textContent = `Score: ${correct}/${questions.length} (${pct}%)`;
+          scoreEl.classList.toggle('text-emerald-400', pct === 100);
+          scoreEl.classList.toggle('text-slate-300', pct !== 100);
+        }
+        progress?.querySelectorAll('[data-dot]').forEach((dot) => {
+          dot.classList.add('bg-indigo-500');
+        });
+      }
     });
+
+    showQuestion();
   });
 </script>

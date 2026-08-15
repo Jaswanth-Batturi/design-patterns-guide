@@ -18,8 +18,8 @@ const afterHtml = await highlightJava(after);
 
 <section class="space-y-3">
   <div>
-    <h2 class="text-xl font-semibold text-white">See the difference in code</h2>
-    <p class="mt-2 text-sm text-slate-400">{takeaway}</p>
+    <h2 class="text-lg font-semibold text-white">Code comparison</h2>
+    <p class="mt-1 text-sm text-slate-400">{takeaway}</p>
   </div>
 
   <div class="code-toggle rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden" data-code-toggle={id} data-before-raw={before} data-after-raw={after}>
@@ -33,7 +33,7 @@ const afterHtml = await highlightJava(after);
           aria-pressed={defaultView === 'before' ? 'true' : 'false'}
           aria-selected={defaultView === 'before' ? 'true' : 'false'}
         >
-          😣 Without pattern
+          😣 Problem code
         </button>
         <button
           type="button"
@@ -43,7 +43,7 @@ const afterHtml = await highlightJava(after);
           aria-pressed={defaultView === 'after' ? 'true' : 'false'}
           aria-selected={defaultView === 'after' ? 'true' : 'false'}
         >
-          ✅ With pattern
+          ✅ Pattern code
         </button>
       </div>
       <button

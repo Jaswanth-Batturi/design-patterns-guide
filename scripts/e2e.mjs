@@ -128,14 +128,14 @@ async function run() {
   await page.goto(`${BASE}/patterns/observer/`, { waitUntil: 'domcontentloaded' });
 
   // Code toggle — default shows WITHOUT pattern first
-  const beforeTab = page.getByRole('tab', { name: 'Without pattern' });
-  const afterTab = page.getByRole('tab', { name: 'With pattern' });
+  const beforeTab = page.getByRole('tab', { name: 'Problem code' });
+  const afterTab = page.getByRole('tab', { name: 'Pattern code' });
   if (await beforeTab.getAttribute('aria-selected') !== 'true') {
-    record('HIGH', 'Code', 'Default tab should be Without pattern');
+    record('HIGH', 'Code', 'Default tab should be Problem code');
   }
   const beforeVisible = await page.locator('[data-panel="before"]').isVisible();
   if (!beforeVisible) {
-    record('HIGH', 'Code', 'Without pattern panel should be visible by default');
+    record('HIGH', 'Code', 'Problem code panel should be visible by default');
   }
   await afterTab.click();
 
@@ -147,24 +147,16 @@ async function run() {
     record('MED', 'Code', `Copy button did not show Copied! (got: ${copyLabel})`);
   }
 
-  // Quiz — wrong then verify lock
-  const quizButtons = page.locator('[data-quiz] button').first();
-  const allQuizBtns = page.locator('[data-quiz] button');
-  const firstQBtn = allQuizBtns.first();
-  await firstQBtn.click();
-  const disabledCount = await page.locator('[data-quiz] button:disabled').count();
-  const totalQuizBtns = await allQuizBtns.count();
-  if (disabledCount < 2) {
-    record('HIGH', 'Quiz', 'Quiz buttons not all disabled after answering');
-  }
-  // Answer remaining questions on page
-  for (let i = 1; i < 3; i++) {
-    const enabled = page.locator('[data-quiz] button:not(:disabled)');
-    if (await enabled.count() > 0) await enabled.first().click();
-  }
+  // Quiz — one question at a time
+  const quizOption = page.locator('[data-quiz] .quiz-option').first();
+  await quizOption.click();
+  await page.locator('[data-quiz-next]').click();
+  const enabled = page.locator('[data-quiz] .quiz-option').first();
+  if (await enabled.count() > 0) await enabled.click();
+  await page.locator('[data-quiz-next]').click();
   const scoreText = await page.locator('[data-quiz-score]').innerText();
-  if (!scoreText.includes('correct')) {
-    record('MED', 'Quiz', 'Quiz score not shown after all questions');
+  if (!scoreText.includes('Score')) {
+    record('MED', 'Quiz', 'Quiz score not shown after completing');
   }
 
   // Java runner — populate single file then trigger Run
@@ -205,7 +197,7 @@ async function run() {
   if (await jumpNav.count() < 6) {
     record('HIGH', 'Pattern page', 'Section jump links missing');
   }
-  await jumpNav.filter({ hasText: 'Try it' }).click();
+  await jumpNav.filter({ hasText: 'Run' }).click();
   await page.waitForTimeout(300);
   const tryItBox = await page.locator('#try-it').boundingBox();
   if (!tryItBox || tryItBox.y > 250) {
@@ -258,8 +250,8 @@ async function run() {
       record('HIGH', 'Routes', `${slug} missing h1`);
     }
     // Quick tab click each page
-    await page.getByRole('tab', { name: 'Without pattern' }).click();
-    await page.getByRole('tab', { name: 'With pattern' }).click();
+    await page.getByRole('tab', { name: 'Problem code' }).click();
+    await page.getByRole('tab', { name: 'Pattern code' }).click();
   }
 
   // Pattern search

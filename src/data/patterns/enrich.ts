@@ -1,71 +1,74 @@
 import type { Pattern } from './types';
 import { patternEnrichment } from './pattern-overrides';
+import { patternStories, type PatternStory } from './pattern-stories';
 
 export interface EnrichedPattern extends Pattern {
-  sceneSteps: string[];
-  withoutPatternPains: string[];
-  withPatternWins: string[];
+  sceneSteps: [string, string, string];
+  withoutPatternPains: [string, string, string];
+  withPatternWins: [string, string, string];
+  codeBridge: string;
+  runExpect: string;
   codeTakeaway: string;
-  tryItSteps: string[];
   runDemo: string;
   codeBeforeHint: string;
   codeAfterHint: string;
 }
 
-const DEFAULT_TRY_STEPS = [
-  'Wait until the editor appears below (about 2 seconds).',
-  'Read the short demo — it is simpler than the full example above.',
-  'Click the green Run ▶ button inside the editor (top-right of the code box).',
-  'Read the output, then change one line and Run again to see the effect.',
-];
-
-function sceneFromAnalogy(analogy: string): string[] {
-  const chunks = analogy
-    .split(/[.!?]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 12);
-  if (chunks.length >= 2) return chunks.slice(0, 3);
-  return [
-    'Picture an everyday situation you already know.',
-    analogy.split(/[—–-]/)[0]?.trim() || analogy.slice(0, 80),
-    'That same tension shows up in code — this pattern resolves it.',
-  ];
+function tuple3(items: string[]): [string, string, string] {
+  return [items[0] ?? '', items[1] ?? '', items[2] ?? ''];
 }
 
-function painsFromProblem(problem: string): string[] {
-  return problem
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 15)
-    .slice(0, 3);
-}
+function storyFor(pattern: Pattern): PatternStory {
+  const story = patternStories[pattern.slug];
+  if (story) return story;
 
-function winsFromSolution(solution: string): string[] {
-  return solution
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 15)
-    .slice(0, 3);
+  return {
+    scene: tuple3(
+      pattern.sceneSteps ??
+        pattern.analogy
+          .split(/[.!?]+/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 8)
+          .slice(0, 3),
+    ),
+    without: tuple3(
+      pattern.withoutPatternPains ??
+        pattern.problem
+          .split(/(?<=[.!?])\s+/)
+          .filter((s) => s.length > 12)
+          .slice(0, 3),
+    ),
+    with: tuple3(
+      pattern.withPatternWins ??
+        pattern.solution
+          .split(/(?<=[.!?])\s+/)
+          .filter((s) => s.length > 12)
+          .slice(0, 3),
+    ),
+    codeBridge: `See how "${pattern.name}" fixes the problem in the code tabs below.`,
+    runExpect: 'Output printed in the console',
+  };
 }
 
 export function enrichPattern(pattern: Pattern): EnrichedPattern {
   const override = patternEnrichment[pattern.slug];
+  const story = storyFor(pattern);
 
   return {
     ...pattern,
-    sceneSteps: pattern.sceneSteps ?? override?.sceneSteps ?? sceneFromAnalogy(pattern.analogy),
-    withoutPatternPains:
-      pattern.withoutPatternPains ?? override?.withoutPatternPains ?? painsFromProblem(pattern.problem),
-    withPatternWins: pattern.withPatternWins ?? override?.withPatternWins ?? winsFromSolution(pattern.solution),
+    sceneSteps: story.scene,
+    withoutPatternPains: story.without,
+    withPatternWins: story.with,
+    codeBridge: story.codeBridge,
+    runExpect: story.runExpect,
     codeTakeaway:
       pattern.codeTakeaway ??
       override?.codeTakeaway ??
-      `Without the pattern, one class does too much or if/else chains grow. With ${pattern.name}, each piece has one job and you extend without rewriting everything.`,
-    tryItSteps: pattern.tryItSteps ?? override?.tryItSteps ?? DEFAULT_TRY_STEPS,
+      story.codeBridge,
     runDemo: pattern.runDemo ?? override?.runDemo ?? pattern.codeAfter,
     codeBeforeHint:
-      override?.codeBeforeHint ?? 'Notice tight coupling and code that is hard to extend.',
+      override?.codeBeforeHint ?? 'This is the messy version — notice duplication and coupling.',
     codeAfterHint:
-      override?.codeAfterHint ?? 'Notice separated roles — add behavior without breaking old code.',
+      override?.codeAfterHint ?? 'This is the pattern version — same story, cleaner structure.',
   };
 }
