@@ -11,7 +11,7 @@ An interactive guide to software design patterns — real-life analogies, Java e
 - **All 23 GoF patterns** — full creational, structural, and behavioral catalog
 - **Real-life analogies** before diving into code
 - **Syntax-highlighted Java** (Shiki) with before/after toggle
-- **JDoodle runner** — load interactive Java console per pattern
+- **OneCompiler Java runner** — embedded editor with pattern code pre-loaded; click Run ▶ to execute
 - **Animated analogy cards** with real-life explanations
 - **Open Graph image** for social sharing
 - **Quick quizzes** per pattern
