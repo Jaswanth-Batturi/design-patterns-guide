@@ -128,12 +128,25 @@ const afterHtml = await highlightJava(after);
     copyBtn?.addEventListener('click', async () => {
       const text = getActiveText();
       if (!text) return;
+      let ok = false;
       try {
         await navigator.clipboard.writeText(text);
-        copyBtn.textContent = 'Copied!';
+        ok = true;
       } catch {
-        copyBtn.textContent = 'Copy failed';
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+        } catch {
+          ok = false;
+        }
       }
+      copyBtn.textContent = ok ? 'Copied!' : 'Copy failed';
       setTimeout(() => {
         copyBtn.textContent = 'Copy code';
       }, 1500);
