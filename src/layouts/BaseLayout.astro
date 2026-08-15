@@ -38,6 +38,7 @@ const pageTitle = title === siteTitle ? siteTitle : `${title} · ${siteTitle}`;
       <nav class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6" aria-label="Main">
         <a href={home} class="group flex items-center gap-2.5 font-semibold text-white">
           <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold tracking-tight">DP</span>
+          <span class="sm:hidden group-hover:text-indigo-300 transition-colors">Patterns</span>
           <span class="hidden sm:inline group-hover:text-indigo-300 transition-colors">{siteTitle}</span>
         </a>
         <div class="flex items-center gap-5 text-sm">

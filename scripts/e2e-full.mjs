@@ -15,7 +15,7 @@ const SLUGS = [
 
 const STALE = ['Patterns in Practice', 'Design Patterns, Simply', 'Real-life scene → code'];
 const PATTERN_SECTIONS = ['Real-life analogy', 'In your code', 'Run it', 'Quiz'];
-const SECTION_IDS = ['story', 'tradeoffs', 'code', 'run', 'quiz'];
+const SECTION_IDS = ['story', 'tradeoffs', 'decision', 'code', 'run', 'quiz'];
 
 const issues = [];
 const record = (severity, area, msg) => {
@@ -117,8 +117,8 @@ async function testPatternPage(page, slug) {
   }
 
   const jumps = page.locator('nav[aria-label="Page sections"] a.section-jump');
-  if (await jumps.count() !== 5) {
-    record('HIGH', slug, `Expected 5 section jumps, got ${await jumps.count()}`);
+  if (await jumps.count() !== 6) {
+    record('HIGH', slug, `Expected 6 section jumps, got ${await jumps.count()}`);
   }
 
   const homeCrumb = page.getByRole('navigation', { name: 'Breadcrumb' }).getByText('Home');
@@ -189,6 +189,14 @@ async function testHomepage(page) {
   await page.waitForTimeout(120);
   if (await page.locator('.pattern-card:not(.hidden)').count() !== 1) {
     record('HIGH', 'Home', 'Search observer failed');
+  }
+  await page.locator('#pattern-search').fill('');
+  await page.waitForTimeout(120);
+
+  await page.locator('#pattern-search').fill('zzzznonmatch');
+  await page.waitForTimeout(120);
+  if (!(await page.locator('#search-empty:not(.hidden)').isVisible())) {
+    record('HIGH', 'Home', 'Search empty state not shown');
   }
   await page.locator('#pattern-search').fill('');
   await page.waitForTimeout(120);

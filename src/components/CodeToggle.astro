@@ -29,7 +29,10 @@ const afterHtml = await highlightJava(after);
           type="button"
           data-view="before"
           role="tab"
-          class="code-tab rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+          class:list={[
+            'code-tab rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+            defaultView === 'before' ? 'bg-rose-600/80 text-white' : 'text-slate-400',
+          ]}
           aria-pressed={defaultView === 'before' ? 'true' : 'false'}
           aria-selected={defaultView === 'before' ? 'true' : 'false'}
         >
@@ -39,7 +42,10 @@ const afterHtml = await highlightJava(after);
           type="button"
           data-view="after"
           role="tab"
-          class="code-tab rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+          class:list={[
+            'code-tab rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+            defaultView === 'after' ? 'bg-emerald-600/80 text-white' : 'text-slate-400',
+          ]}
           aria-pressed={defaultView === 'after' ? 'true' : 'false'}
           aria-selected={defaultView === 'after' ? 'true' : 'false'}
         >

@@ -31,9 +31,10 @@ const categoryColor: Record<string, string> = {
 
 const sections = [
   { id: 'story', label: 'Analogy' },
-  { id: 'tradeoffs', label: 'Code impact' },
-  { id: 'code', label: 'Compare' },
-  { id: 'run', label: 'Run' },
+  { id: 'tradeoffs', label: 'In your code' },
+  { id: 'decision', label: 'When to use' },
+  { id: 'code', label: 'Code' },
+  { id: 'run', label: 'Run it' },
   { id: 'quiz', label: 'Quiz' },
 ];
 ---
@@ -70,31 +71,37 @@ const sections = [
   </nav>
 
   <div class="space-y-8">
-    <div id="story" class="scroll-mt-32">
+    <div id="story" class="scroll-mt-36">
       <PatternStory slug={pattern.slug} icon={pattern.analogyIcon} steps={pattern.sceneSteps} />
     </div>
 
-    <div id="tradeoffs" class="scroll-mt-32">
+    <div id="tradeoffs" class="scroll-mt-36">
       <TradeoffCompare withoutPains={pattern.withoutPatternPains} withWins={pattern.withPatternWins} />
     </div>
 
-    <details id="decision" class="scroll-mt-32 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3">
+    <details id="decision" class="scroll-mt-36 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3" open>
       <summary class="cursor-pointer text-sm font-medium text-slate-300 select-none">When to use or skip</summary>
       <div class="mt-3 grid gap-4 sm:grid-cols-2 text-sm text-slate-500">
-        <ul class="space-y-1.5">
-          {pattern.whenToUse.slice(0, 3).map((item) => (
-            <li>+ {item}</li>
-          ))}
-        </ul>
-        <ul class="space-y-1.5">
-          {pattern.whenNotToUse.slice(0, 2).map((item) => (
-            <li>− {item}</li>
-          ))}
-        </ul>
+        <div>
+          <p class="mb-2 text-xs font-medium uppercase tracking-wide text-emerald-400/80">Use when</p>
+          <ul class="space-y-1.5">
+            {pattern.whenToUse.map((item) => (
+              <li>+ {item}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p class="mb-2 text-xs font-medium uppercase tracking-wide text-rose-400/80">Skip when</p>
+          <ul class="space-y-1.5">
+            {pattern.whenNotToUse.map((item) => (
+              <li>− {item}</li>
+            ))}
+          </ul>
+        </div>
       </div>
     </details>
 
-    <div id="code" class="scroll-mt-32">
+    <div id="code" class="scroll-mt-36">
       <CodeToggle
         before={pattern.displayCodeBefore}
         after={pattern.displayCodeAfter}
@@ -105,11 +112,11 @@ const sections = [
       />
     </div>
 
-    <div id="run" class="scroll-mt-32">
-      <CodeRunner code={pattern.runDemo} runExpect={pattern.runExpect} />
+    <div id="run" class="scroll-mt-36">
+      <CodeRunner code={pattern.runDemo} runExpect={pattern.runExpect} tryItSteps={pattern.tryItSteps} />
     </div>
 
-    <div id="quiz" class="scroll-mt-32">
+    <div id="quiz" class="scroll-mt-36">
       <Quiz questions={pattern.quiz} />
     </div>
 
@@ -147,7 +154,7 @@ const sections = [
 <script>
   const nav = document.querySelector('nav[aria-label="Page sections"]');
   const links = nav?.querySelectorAll('.section-jump');
-  const ids = ['story', 'tradeoffs', 'code', 'run', 'quiz'];
+  const ids = ['story', 'tradeoffs', 'decision', 'code', 'run', 'quiz'];
 
   const sync = () => {
     if (!links) return;

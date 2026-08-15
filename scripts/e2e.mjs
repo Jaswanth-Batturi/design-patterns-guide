@@ -126,7 +126,7 @@ async function run() {
   // Copy code
   await page.getByRole('button', { name: 'Copy code' }).click();
   await page.waitForTimeout(200);
-  const copyLabel = await page.getByRole('button', { name: /Copy|Copied/ }).innerText();
+  const copyLabel = await page.locator('[data-copy]').innerText();
   if (!copyLabel.includes('Copied')) {
     record('MED', 'Code', `Copy button did not show Copied! (got: ${copyLabel})`);
   }
@@ -178,7 +178,7 @@ async function run() {
 
   // Section jump nav
   const jumpNav = page.locator('nav[aria-label="Page sections"] a.section-jump');
-  if (await jumpNav.count() < 5) {
+  if (await jumpNav.count() < 6) {
     record('HIGH', 'Pattern page', 'Section jump links missing');
   }
   await jumpNav.filter({ hasText: 'Run' }).click();

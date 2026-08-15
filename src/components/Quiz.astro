@@ -28,6 +28,13 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
   </div>
 
   <p class="mt-4 text-sm font-medium hidden" data-quiz-score></p>
+  <button
+    type="button"
+    data-quiz-retake
+    class="mt-3 hidden rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-indigo-500 hover:text-white transition-colors"
+  >
+    Try again
+  </button>
 </section>
 
 <script>
@@ -45,9 +52,22 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
     const feedbackText = root.querySelector('[data-quiz-feedback-text]');
     const nextBtn = root.querySelector('[data-quiz-next]');
     const scoreEl = root.querySelector('[data-quiz-score]');
+    const retakeBtn = root.querySelector('[data-quiz-retake]');
 
     let index = 0;
     let correct = 0;
+
+    const resetQuiz = () => {
+      index = 0;
+      correct = 0;
+      if (scoreEl) {
+        scoreEl.hidden = true;
+        scoreEl.classList.add('hidden');
+      }
+      retakeBtn?.classList.add('hidden');
+      nextBtn!.textContent = 'Next question';
+      showQuestion();
+    };
 
     if (progress) progress.innerHTML = '';
     questions.forEach((_, i) => {
@@ -77,6 +97,8 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
 
       const grid = document.createElement('div');
       grid.className = 'mt-4 grid gap-2 sm:grid-cols-2';
+      grid.setAttribute('role', 'radiogroup');
+      grid.setAttribute('aria-label', 'Quiz options');
       const buttons: HTMLButtonElement[] = [];
 
       q.options.forEach((option, optIndex) => {
@@ -84,7 +106,13 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
         btn.type = 'button';
         btn.className =
           'quiz-option group flex items-start gap-3 rounded-xl border-2 border-slate-700 bg-slate-950/60 px-4 py-3 text-left text-sm text-slate-300 transition-all hover:border-indigo-500/50 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500';
-        btn.innerHTML = `<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-slate-600 text-[10px] text-slate-500 group-hover:border-indigo-400">?</span><span>${option}</span>`;
+        const circle = document.createElement('span');
+        circle.className =
+          'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-slate-600 text-[10px] text-slate-500 group-hover:border-indigo-400';
+        circle.textContent = '?';
+        const label = document.createElement('span');
+        label.textContent = option;
+        btn.append(circle, label);
         buttons.push(btn);
 
         btn.addEventListener('click', () => {
@@ -98,19 +126,19 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
           if (isCorrect) correct += 1;
 
           buttons.forEach((b, i) => {
-            const circle = b.querySelector('span');
+            const circleEl = b.querySelector('span');
             if (i === q.correctIndex) {
               b.classList.add('border-emerald-500', 'bg-emerald-500/15', 'text-emerald-200');
-              if (circle) {
-                circle.textContent = '✓';
-                circle.className =
+              if (circleEl) {
+                circleEl.textContent = '✓';
+                circleEl.className =
                   'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs text-white font-bold';
               }
             } else if (i === optIndex && !isCorrect) {
               b.classList.add('border-rose-500', 'bg-rose-500/15', 'text-rose-200');
-              if (circle) {
-                circle.textContent = '✗';
-                circle.className =
+              if (circleEl) {
+                circleEl.textContent = '✗';
+                circleEl.className =
                   'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs text-white font-bold';
               }
             } else {
@@ -121,6 +149,7 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
           feedbackTitle!.textContent = isCorrect ? 'Correct!' : 'Not quite';
           feedbackText!.textContent = q.explanation;
           feedback?.classList.remove('hidden');
+          feedback?.setAttribute('aria-live', 'polite');
 
           if (index === questions.length - 1) {
             nextBtn!.textContent = 'See score';
@@ -150,10 +179,14 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
           scoreEl.classList.toggle('text-slate-300', pct !== 100);
         }
         progress?.querySelectorAll('[data-dot]').forEach((dot) => {
+          dot.classList.remove('bg-emerald-600/80', 'bg-rose-600/80');
           dot.classList.add('bg-indigo-500');
         });
+        retakeBtn?.classList.remove('hidden');
       }
     });
+
+    retakeBtn?.addEventListener('click', resetQuiz);
 
     showQuestion();
   });

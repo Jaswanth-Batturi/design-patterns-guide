@@ -2,6 +2,7 @@ import type { Pattern } from './types';
 import { patternEnrichment } from './pattern-overrides';
 import { patternStories, type PatternStory } from './pattern-stories';
 import { patternCodeSnippets } from './pattern-code-snippets';
+import { deriveRunExpect } from '../../utils/run-expect';
 
 export interface EnrichedPattern extends Pattern {
   sceneSteps: [string, string, string];
@@ -9,6 +10,7 @@ export interface EnrichedPattern extends Pattern {
   withPatternWins: [string, string, string];
   codeBridge: string;
   runExpect: string;
+  tryItSteps: string[];
   codeTakeaway: string;
   runDemo: string;
   codeBeforeHint: string;
@@ -50,22 +52,32 @@ function storyFor(pattern: Pattern): PatternStory {
   };
 }
 
+const defaultTryItSteps = [
+  'Wait until the editor finishes loading.',
+  'Click Run ▶ inside the dark editor box.',
+  'Compare the output with the expected lines below.',
+];
+
 export function enrichPattern(pattern: Pattern): EnrichedPattern {
   const override = patternEnrichment[pattern.slug];
   const story = storyFor(pattern);
   const snippets = patternCodeSnippets[pattern.slug];
+  const runDemo = pattern.runDemo ?? override?.runDemo ?? pattern.codeAfter;
 
   return {
     ...pattern,
-    sceneSteps: story.scene,
-    withoutPatternPains: story.without,
-    withPatternWins: story.with,
+    sceneSteps: override?.sceneSteps ? tuple3(override.sceneSteps) : story.scene,
+    withoutPatternPains: override?.withoutPatternPains
+      ? tuple3(override.withoutPatternPains)
+      : story.without,
+    withPatternWins: override?.withPatternWins ? tuple3(override.withPatternWins) : story.with,
     codeBridge: story.codeBridge,
-    runExpect: story.runExpect,
+    runExpect: deriveRunExpect(runDemo),
+    tryItSteps: override?.tryItSteps ?? defaultTryItSteps,
     displayCodeBefore: snippets?.before ?? pattern.codeBefore,
     displayCodeAfter: snippets?.after ?? pattern.codeAfter,
     codeTakeaway: pattern.codeTakeaway ?? override?.codeTakeaway ?? story.codeBridge,
-    runDemo: pattern.runDemo ?? override?.runDemo ?? pattern.codeAfter,
+    runDemo,
     codeBeforeHint: override?.codeBeforeHint ?? 'The painful version — notice repetition and coupling.',
     codeAfterHint: override?.codeAfterHint ?? 'The pattern version — same idea, cleaner structure.',
   };
