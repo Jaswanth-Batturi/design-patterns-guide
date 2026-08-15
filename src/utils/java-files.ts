@@ -3,25 +3,10 @@
  * Must be ONE file: multi-file demos open the wrong tab and Run fails
  * ("Main method not found in class AppConfig").
  */
+import { javaToCompilerFiles as toFiles } from './runner-code';
+
 export function javaToCompilerFiles(code: string): Array<{ name: string; content: string }> {
-  const trimmed = code.trim();
-  if (!trimmed) {
-    return [
-      {
-        name: 'Main.java',
-        content: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello from Design Patterns");
-    }
-}`,
-      },
-    ];
-  }
-
-  const publicClass = trimmed.match(/^public\s+class\s+(\w+)/m);
-  const name = publicClass ? `${publicClass[1]}.java` : 'Main.java';
-
-  return [{ name, content: trimmed }];
+  return toFiles(code);
 }
 
 /**

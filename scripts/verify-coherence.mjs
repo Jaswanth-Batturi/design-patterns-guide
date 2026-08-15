@@ -26,8 +26,8 @@ for (const slug of slugs) {
     continue;
   }
   const html = readFileSync(htmlPath, 'utf8');
-  if (!html.includes('Copy demo code')) {
-    console.error(`MISSING copy demo button: ${slug}`);
+  if (!html.includes('Copy editor code')) {
+    console.error(`MISSING copy editor button: ${slug}`);
     failed++;
   }
   const expectMatch = html.match(/data-run-expect[^>]*>([^<]+)</);

@@ -1,47 +1,27 @@
 /** Inline SVG scenes — one visual per pattern (matches pattern-stories metaphor). */
 export const patternIllustrations: Record<string, { label: string; svg: string }> = {
   singleton: {
-    label: 'One Wi‑Fi router — phone, laptop, and TV on the same network',
-    svg: `<svg viewBox="0 0 240 140" class="w-full h-auto" aria-hidden="true">
+    label: 'One Wi‑Fi router — every device on the same network',
+    svg: `<svg viewBox="0 0 200 120" class="w-full h-auto" aria-hidden="true">
   <defs>
     <linearGradient id="bg-singleton" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e1b4b"/>
-      <stop offset="50%" stop-color="#4338ca"/>
-      <stop offset="100%" stop-color="#0e7490"/>
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
     </linearGradient>
-    <radialGradient id="wifi-glow" cx="50%" cy="40%" r="50%">
-      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
-    </radialGradient>
   </defs>
-  <rect width="240" height="140" fill="url(#bg-singleton)" rx="10"/>
-  <circle cx="120" cy="52" r="48" fill="url(#wifi-glow)"/>
-  <path d="M92 48 Q120 22 148 48" stroke="#4ade80" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  <path d="M82 58 Q120 28 158 58" stroke="#22c55e" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
-  <path d="M72 68 Q120 34 168 68" stroke="#16a34a" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.45"/>
-  <rect x="98" y="56" width="44" height="28" rx="6" fill="#0f172a" stroke="#a5b4fc" stroke-width="2"/>
-  <rect x="108" y="64" width="24" height="6" rx="2" fill="#22c55e"/>
-  <circle cx="120" cy="72" r="3" fill="#4ade80"/>
-  <text x="120" y="50" text-anchor="middle" fill="#e0e7ff" font-size="8" font-family="system-ui" font-weight="600">Home Wi‑Fi</text>
-  <g transform="translate(36,88)">
-    <rect x="-14" y="-18" width="28" height="36" rx="6" fill="#06b6d4" stroke="#67e8f9" stroke-width="1.5"/>
-    <circle cx="0" cy="-8" r="3" fill="#0f172a"/>
-    <text x="0" y="28" text-anchor="middle" fill="#ecfeff" font-size="7" font-family="system-ui">phone</text>
-  </g>
-  <g transform="translate(120,100)">
-    <rect x="-20" y="-12" width="40" height="24" rx="4" fill="#ec4899" stroke="#fbcfe8" stroke-width="1.5"/>
-    <rect x="-16" y="-8" width="32" height="16" rx="2" fill="#831843" opacity="0.5"/>
-    <text x="0" y="22" text-anchor="middle" fill="#fce7f3" font-size="7" font-family="system-ui">laptop</text>
-  </g>
-  <g transform="translate(196,90)">
-    <rect x="-16" y="-14" width="32" height="28" rx="5" fill="#f59e0b" stroke="#fde68a" stroke-width="1.5"/>
-    <circle cx="0" cy="-4" r="2" fill="#78350f"/>
-    <text x="0" y="24" text-anchor="middle" fill="#fef3c7" font-size="7" font-family="system-ui">tablet</text>
-  </g>
-  <path d="M50 82 L98 68" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <path d="M120 88 L120 76" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <path d="M190 78 L142 68" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="120" y="132" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="system-ui">one network · one shared config</text>
+  <rect width="200" height="120" fill="url(#bg-singleton)" rx="8"/>
+  <text x="100" y="14" text-anchor="middle" fill="#e0e7ff" font-size="9" font-family="system-ui" font-weight="600">Home Wi‑Fi</text>
+  <path d="M88 38 Q100 24 112 38" stroke="#4ade80" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M82 44 Q100 28 118 44" stroke="#22c55e" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <rect x="82" y="46" width="36" height="22" rx="4" fill="#1e1b4b" stroke="#a5b4fc" stroke-width="1.5"/>
+  <circle cx="100" cy="57" r="3" fill="#22c55e"/>
+  <circle cx="34" cy="82" r="10" fill="#06b6d4"/>
+  <circle cx="100" cy="92" r="9" fill="#ec4899"/>
+  <circle cx="166" cy="80" r="10" fill="#f59e0b"/>
+  <path d="M44 78 L82 56 M156 74 L118 56 M100 83 L100 68" stroke="#c7d2fe" stroke-width="1.2" stroke-dasharray="3 2"/>
+  <text x="34" y="85" text-anchor="middle" fill="#fff" font-size="6" font-family="system-ui">phone</text>
+  <text x="100" y="95" text-anchor="middle" fill="#fff" font-size="6" font-family="system-ui">laptop</text>
+  <text x="166" y="83" text-anchor="middle" fill="#fff" font-size="6" font-family="system-ui">tablet</text>
 </svg>`,
   },
   factory: {
@@ -253,25 +233,29 @@ export const patternIllustrations: Record<string, { label: string; svg: string }
 </svg>`,
   },
   flyweight: {
-    label: 'Letter e in Word — one glyph, many instances',
+    label: 'Forest of trees — one oak sprite, many positions',
     svg: `<svg viewBox="0 0 200 120" class="w-full h-auto" aria-hidden="true">
   <defs>
     <linearGradient id="bg-flyweight" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#164e63"/>
-      <stop offset="100%" stop-color="#06b6d4"/>
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="100%" stop-color="#22c55e"/>
     </linearGradient>
   </defs>
   <rect width="200" height="120" fill="url(#bg-flyweight)" rx="8"/>
-  <text x="100" y="16" text-anchor="middle" fill="#ecfeff" font-size="9" font-family="system-ui" font-weight="600">Letter e in Word</text>
-  <circle cx="52" cy="62" r="28" fill="#6366f1" stroke="#a5b4fc" stroke-width="2"/>
-  <text x="52" y="72" text-anchor="middle" fill="#fff" font-size="32" font-family="Georgia, serif" font-weight="700">e</text>
-  <text x="52" y="100" text-anchor="middle" fill="#a5b4fc" font-size="7" font-family="system-ui">shared glyph</text>
-  <text x="108" y="44" fill="#22c55e" font-size="18" font-family="Georgia, serif">e</text>
-  <text x="130" y="58" fill="#f59e0b" font-size="14" font-family="Georgia, serif">e</text>
-  <text x="118" y="78" fill="#ec4899" font-size="20" font-family="Georgia, serif">e</text>
-  <text x="158" y="52" fill="#6366f1" font-size="12" font-family="Georgia, serif">e</text>
-  <text x="148" y="88" fill="#06b6d4" font-size="16" font-family="Georgia, serif">e</text>
-  <text x="140" y="104" text-anchor="middle" fill="#67e8f9" font-size="7" font-family="system-ui">reused everywhere</text>
+  <text x="100" y="14" text-anchor="middle" fill="#dcfce7" font-size="9" font-family="system-ui" font-weight="600">Forest of trees</text>
+  <rect x="24" y="36" width="36" height="28" rx="4" fill="#166534" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="42" y="54" text-anchor="middle" fill="#bbf7d0" font-size="8" font-family="system-ui">Oak</text>
+  <text x="42" y="72" text-anchor="middle" fill="#86efac" font-size="6" font-family="system-ui">shared</text>
+  <path d="M72 50 L88 42" stroke="#fef3c7" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <path d="M72 58 L88 58" stroke="#fef3c7" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <path d="M72 66 L88 74" stroke="#fef3c7" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <circle cx="108" cy="48" r="8" fill="#16a34a"/>
+  <rect x="104" y="52" width="8" height="14" fill="#15803d"/>
+  <circle cx="132" cy="56" r="7" fill="#16a34a"/>
+  <rect x="129" y="60" width="6" height="12" fill="#15803d"/>
+  <circle cx="156" cy="44" r="9" fill="#16a34a"/>
+  <rect x="152" y="50" width="8" height="16" fill="#15803d"/>
+  <text x="100" y="108" text-anchor="middle" fill="#bbf7d0" font-size="7" font-family="system-ui">same sprite · different x,y</text>
 </svg>`,
   },
   proxy: {

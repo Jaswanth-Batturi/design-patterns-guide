@@ -1,5 +1,4 @@
 import type { Pattern } from './types';
-import { patternEnrichment } from './pattern-overrides';
 import { patternCode } from './pattern-code';
 import { patternStories, type PatternStory } from './pattern-stories';
 import { deriveRunExpect } from '../../utils/run-expect';
@@ -63,11 +62,11 @@ function storyFor(pattern: Pattern): PatternStory {
 }
 
 export function enrichPattern(pattern: Pattern): EnrichedPattern {
-  const override = patternEnrichment[pattern.slug];
   const story = storyFor(pattern);
   const code = patternCode[pattern.slug];
-  const runDemo =
-    code?.runDemo ?? pattern.runDemo ?? override?.runDemo ?? pattern.codeAfter;
+  const displayCodeBefore = code?.codeBefore ?? pattern.codeBefore;
+  const displayCodeAfter = code?.codeAfter ?? pattern.codeAfter;
+  const runDemo = displayCodeAfter;
 
   const overview =
     story.overview ??
@@ -89,8 +88,8 @@ export function enrichPattern(pattern: Pattern): EnrichedPattern {
     codeBridge: story.codeBridge,
     runExpect: deriveRunExpect(runDemo),
     tryItSteps: story.tryItSteps,
-    displayCodeBefore: code?.codeBefore ?? pattern.codeBefore,
-    displayCodeAfter: code?.codeAfter ?? pattern.codeAfter,
+    displayCodeBefore,
+    displayCodeAfter,
     codeTakeaway: story.codeBridge,
     runDemo,
     codeBeforeHint: story.codeBeforeHint,

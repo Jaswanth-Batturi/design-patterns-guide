@@ -319,33 +319,33 @@ export const patternStories: Record<string, PatternStory> = {
     ],
   },
   flyweight: {
-    example: 'Letter “e” in Word',
+    example: 'Forest of trees',
     overview:
-      'A Word document uses the letter “e” thousands of times but stores one shared glyph drawing for that character. Each position only records x and y coordinates — the font shape is reused, not duplicated. In code, Flyweight shares immutable intrinsic state across many objects so memory stays bounded.',
+      'A game forest renders ten thousand oak trees on screen, but only one oak mesh is stored in memory. Each tree object holds just its x/y position while the shared sprite data lives in a factory cache. In code, Flyweight separates intrinsic shared state from extrinsic per-instance data so memory stays bounded.',
     problemStatement:
-      'When every character or game tree stores its own full glyph texture or mesh data, memory balloons and garbage collection churns on duplicated immutable data. Ten thousand trees each holding identical leaf meshes is wasteful when the shape never changes — only position does.',
+      'When every tree object stores its own full sprite texture, memory balloons — ten thousand oaks duplicate the same mesh bytes. Garbage collection churns on identical immutable data that should be shared once per tree type.',
     tradeoffIntro:
-      'Using the Word-document example: without Flyweight, every “e” on the page stores its own bitmap. With Flyweight, one shared glyph serves every position and each character only stores where it sits on the page.',
+      'Without Flyweight, every tree embeds duplicate sprite data. With Flyweight, one Oak sprite is shared; each tree only stores where it stands on the map.',
     scene: [
-      'You type a long essay in Word and the letter “e” appears hundreds of times on screen. The app does not store hundreds of separate drawings of the letter — it stores one glyph definition for “e” in the font file.',
-      'Each occurrence on the page only remembers its x/y position and formatting context. The actual curve data for the letter is shared, which is why a 50-page document does not consume 50 pages worth of glyph memory.',
-      'Flyweight works the same way in code: GlyphFactory.get("A") returns the same Glyph instance for every A. Position is stored per character; the shape is intrinsic and shared.',
+      'You fly over a forest in a game and see thousands of identical oak trees. The engine does not store thousands of separate mesh files — it stores one oak sprite and reuses it at every coordinate.',
+      'Each tree on the map only remembers its x and y position. The leaf shape, color, and texture are intrinsic data shared through a factory cache.',
+      'Flyweight works the same way in code: TreeFactory.get("Oak") returns the same TreeType for every oak. Position is extrinsic; the sprite is intrinsic and shared.',
     ],
     without: [
-      'Every Character object stores a full glyph texture, so a paragraph with 10,000 letters allocates 10,000 copies of the same “e” bitmap.',
-      'A forest scene with 10,000 trees each embeds duplicate mesh data even though every oak shares identical geometry.',
-      'Garbage collection churns because identical immutable data is copied instead of referenced from a shared pool.',
+      'Every Tree object stores a full sprite texture, so ten thousand oaks allocate ten thousand copies of the same mesh.',
+      'Identical oak geometry is duplicated in memory even though only x and y differ per tree.',
+      'Garbage collection churns because immutable sprite data is copied instead of referenced from a shared pool.',
     ],
     with: [
-      'GlyphFactory.get("A") returns the same Glyph instance for every A — one drawing, many positions on the page.',
-      'Extrinsic state like x and y lives on the character; intrinsic shape data lives in the factory cache.',
-      'Memory stays bounded because millions of rendered characters reuse a small set of shared glyph objects.',
+      'TreeFactory.get("Oak") returns the same TreeType for every oak — one sprite, many positions.',
+      'Extrinsic x/y lives on each tree; intrinsic sprite data lives in the factory cache.',
+      'Memory stays bounded because thousands of trees reuse a small set of shared TreeType objects.',
     ],
-    codeBridge: 'Flyweight = shared “e” glyph: factory.get("A") returns one object for every A.',
-    codeBeforeHint: 'Without — new Glyph("A") per character position.',
-    codeAfterHint: 'With — two characters share factory.get("A"); Shared glyph? true.',
+    codeBridge: 'Flyweight = shared oak sprite: factory.get("Oak") returns one object for every tree.',
+    codeBeforeHint: 'Without — each tree stores its own duplicate sprite data.',
+    codeAfterHint: 'With — two trees share TreeFactory.get("Oak"); Shared sprite? true.',
     tryItSteps: [
-      'Run ▶ — Shared glyph? true for two positions using same A.',
+      'Run ▶ — Shared sprite? true for two oaks from the same factory.',
     ],
   },
   proxy: {

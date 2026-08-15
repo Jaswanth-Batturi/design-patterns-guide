@@ -41,7 +41,7 @@ function auditDist() {
     }
     if (!html.includes('<svg')) record('HIGH', slug, 'Missing SVG illustration');
     if (!html.includes('When to use')) record('HIGH', slug, 'Missing when-to-use section');
-    if (!html.includes('Copy demo code')) record('MED', slug, 'Missing copy demo button');
+    if (!html.includes('Copy editor code')) record('MED', slug, 'Missing copy editor button');
     for (const s of stale) {
       if (html.includes(s)) record('HIGH', slug, `Stale: ${s}`);
     }
