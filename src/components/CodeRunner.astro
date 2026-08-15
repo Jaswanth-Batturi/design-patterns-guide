@@ -1,5 +1,5 @@
 ---
-import { javaToCompilerFiles } from '../utils/java-files';
+import { javaToCompilerFiles, javaMainClassName } from '../utils/java-files';
 
 interface Props {
   code: string;
@@ -10,8 +10,9 @@ interface Props {
 const { code, patternName, steps } = Astro.props;
 const frameId = `oc-runner-${Math.random().toString(36).slice(2, 9)}`;
 const files = javaToCompilerFiles(code);
+const mainClass = javaMainClassName(code);
 const embedSrc =
-  'https://onecompiler.com/embed/java?listenToEvents=true&hideLanguageSelection=true&theme=dark&hideTitle=true';
+  'https://onecompiler.com/embed/java?listenToEvents=true&hideLanguageSelection=true&theme=dark&hideTitle=true&hideNewFileOption=true';
 ---
 
 <section class="rounded-2xl border border-indigo-500/20 bg-slate-900/40 overflow-hidden" data-code-runner>
@@ -30,13 +31,15 @@ const embedSrc =
         </li>
       ))}
     </ol>
-    <div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-3 text-xs text-amber-200/90">
+    <p class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-3 text-xs text-amber-200/90">
       <span class="flex items-center gap-2 font-semibold text-amber-300">
         <span class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-600 text-white text-[10px]">▶ Run</span>
         Inside the editor below
       </span>
-      <span class="text-amber-200/80">Top-right of the dark gray code box — not this page header.</span>
-    </div>
+      <span class="text-amber-200/80">
+        Top-right of the dark gray box. File tab should read <strong class="text-amber-100">{mainClass}.java</strong> — that file has <code class="text-amber-100">main()</code>.
+      </span>
+    </p>
   </div>
 
   <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-2">

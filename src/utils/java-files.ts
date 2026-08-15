@@ -1,5 +1,7 @@
 /**
- * Split Java source into OneCompiler file entries and ensure compilable structure.
+ * Prepare Java source for OneCompiler embed.
+ * Must be ONE file: multi-file demos open the wrong tab and Run fails
+ * ("Main method not found in class AppConfig").
  */
 export function javaToCompilerFiles(code: string): Array<{ name: string; content: string }> {
   const trimmed = code.trim();
@@ -16,51 +18,20 @@ export function javaToCompilerFiles(code: string): Array<{ name: string; content
     ];
   }
 
-  const blocks: string[] = [];
-  const lines = trimmed.split('\n');
-  let current = '';
+  const publicClass = trimmed.match(/^public\s+class\s+(\w+)/m);
+  const name = publicClass ? `${publicClass[1]}.java` : 'Main.java';
 
-  const isTypeStart = (line: string) =>
-    /^(?:public\s+)?(?:class|interface|enum|record)\s+\w+/.test(line.trim());
+  return [{ name, content: trimmed }];
+}
 
-  for (const line of lines) {
-    if (isTypeStart(line) && current.trim()) {
-      blocks.push(current.trim());
-      current = line + '\n';
-    } else {
-      current += line + '\n';
-    }
-  }
-  if (current.trim()) blocks.push(current.trim());
+/**
+ * Resolve the public class name that contains main() — used for embed filename.
+ */
+export function javaMainClassName(code: string): string {
+  const trimmed = code.trim();
+  const withMain = trimmed.match(/public\s+class\s+(\w+)[\s\S]*?public\s+static\s+void\s+main\s*\(/m);
+  if (withMain) return withMain[1];
 
-  let publicFileUsed = false;
-  const files = blocks.map((block) => {
-    const nameMatch = block.match(/^(?:public\s+)?(?:class|interface|enum|record)\s+(\w+)/);
-    const typeName = nameMatch?.[1] ?? 'Main';
-    let content = block;
-
-    if (/^public\s+(class|interface|enum|record)\s+/m.test(content)) {
-      if (publicFileUsed) {
-        content = content.replace(/^public\s+(?=class|interface|enum|record)/m, '');
-      } else {
-        publicFileUsed = true;
-      }
-    }
-
-    return { name: `${typeName}.java`, content };
-  });
-
-  const hasMain = files.some((f) => /public\s+static\s+void\s+main\s*\(/m.test(f.content));
-  if (!hasMain) {
-    files.push({
-      name: 'Main.java',
-      content: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Pattern demo loaded. Try calling classes from the example above.");
-    }
-}`,
-    });
-  }
-
-  return files;
+  const anyPublic = trimmed.match(/^public\s+class\s+(\w+)/m);
+  return anyPublic?.[1] ?? 'Main';
 }

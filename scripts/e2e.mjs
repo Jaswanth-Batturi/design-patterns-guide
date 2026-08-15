@@ -167,7 +167,7 @@ async function run() {
     record('MED', 'Quiz', 'Quiz score not shown after all questions');
   }
 
-  // Java runner (OneCompiler iframe — must load and show editor)
+  // Java runner — populate single file then trigger Run
   const runnerFrame = page.locator('[data-oc-frame]');
   const frameSrc = await runnerFrame.getAttribute('src');
   if (!frameSrc?.includes('onecompiler.com/embed/java')) {
@@ -181,6 +181,23 @@ async function run() {
   });
   if (!loadingHidden || !frameVisible) {
     record('HIGH', 'CodeRunner', 'OneCompiler editor did not become visible after load');
+  }
+
+  // Trigger run programmatically — singleton must not error on missing main
+  await page.goto(`${BASE}/patterns/singleton/`, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(4000);
+  const singletonFrame = page.locator('[data-oc-frame]');
+  await singletonFrame.evaluate((el) => {
+    el.contentWindow?.postMessage({ eventType: 'triggerRun' }, '*');
+  });
+  await page.waitForTimeout(5000);
+  const runnerSection = page.locator('[data-code-runner]').first();
+  const runnerText = await runnerSection.innerText();
+  if (runnerText.includes('Main method not found in class AppConfig')) {
+    record('HIGH', 'CodeRunner', 'Singleton Run failed: main not found on AppConfig (multi-file bug)');
+  }
+  if (runnerText.includes('Exit 1') && !runnerText.includes('Same object? true')) {
+    record('HIGH', 'CodeRunner', 'Singleton Run did not produce expected output');
   }
 
   // Section jump nav
