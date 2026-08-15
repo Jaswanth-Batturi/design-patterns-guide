@@ -12,7 +12,7 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
 
 <section class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6" data-quiz={quizId} data-questions={JSON.stringify(questions)}>
   <h2 class="text-xl font-semibold text-white">Quick check — {patternName}</h2>
-  <p class="mt-1 text-sm text-slate-400">Tap an answer. Instant feedback helps the pattern stick.</p>
+  <p class="mt-1 text-sm text-slate-400">Pick one answer per question. You get instant feedback.</p>
   <div class="mt-6 space-y-8" data-quiz-body></div>
   <p class="mt-6 text-sm text-slate-500" data-quiz-score hidden></p>
 </section>
@@ -32,16 +32,19 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
 
       const options = document.createElement('div');
       options.className = 'grid gap-2 sm:grid-cols-2';
+      const buttons: HTMLButtonElement[] = [];
 
       q.options.forEach((option: string, optIndex: number) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className =
-          'rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-left text-sm text-slate-300 hover:border-indigo-500/60 transition-colors';
+          'rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-left text-sm text-slate-300 hover:border-indigo-500/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500';
         btn.textContent = option;
+        buttons.push(btn);
+
         btn.addEventListener('click', () => {
-          if (btn.dataset.locked) return;
-          btn.dataset.locked = 'true';
+          if (block.dataset.answered) return;
+          block.dataset.answered = 'true';
           answered += 1;
 
           const isCorrect = optIndex === q.correctIndex;
@@ -50,9 +53,16 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
             btn.classList.add('border-emerald-500/60', 'bg-emerald-500/10', 'text-emerald-300');
           } else {
             btn.classList.add('border-rose-500/60', 'bg-rose-500/10', 'text-rose-300');
-            const correctBtn = options.children[q.correctIndex] as HTMLButtonElement;
-            correctBtn.classList.add('border-emerald-500/60', 'bg-emerald-500/10', 'text-emerald-300');
+            buttons[q.correctIndex].classList.add('border-emerald-500/60', 'bg-emerald-500/10', 'text-emerald-300');
           }
+
+          buttons.forEach((b) => {
+            b.disabled = true;
+            b.classList.add('opacity-80', 'cursor-default');
+            if (!b.classList.contains('border-emerald-500/60')) {
+              b.classList.remove('hover:border-indigo-500/60');
+            }
+          });
 
           const feedback = document.createElement('p');
           feedback.className = 'mt-2 text-sm text-slate-400';
@@ -61,7 +71,11 @@ const quizId = `quiz-${Math.random().toString(36).slice(2, 9)}`;
 
           if (scoreEl && answered === questions.length) {
             scoreEl.hidden = false;
-            scoreEl.textContent = `You got ${correct} of ${questions.length} correct.`;
+            const pct = Math.round((correct / questions.length) * 100);
+            scoreEl.textContent = `You got ${correct} of ${questions.length} correct (${pct}%).`;
+            if (pct === 100) {
+              scoreEl.classList.add('text-emerald-400');
+            }
           }
         });
         options.appendChild(btn);

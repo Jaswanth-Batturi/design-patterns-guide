@@ -9,21 +9,25 @@ const id = `code-${Math.random().toString(36).slice(2, 9)}`;
 ---
 
 <div class="code-toggle rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden" data-code-toggle={id}>
-  <div class="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
-    <div class="flex gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
+    <div class="flex gap-2" role="tablist" aria-label="Code comparison">
       <button
         type="button"
         data-view="before"
-        class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
-        aria-pressed="true"
+        role="tab"
+        class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+        aria-pressed="false"
+        aria-selected="false"
       >
         Without pattern
       </button>
       <button
         type="button"
         data-view="after"
-        class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
-        aria-pressed="false"
+        role="tab"
+        class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+        aria-pressed="true"
+        aria-selected="true"
       >
         With pattern
       </button>
@@ -31,12 +35,12 @@ const id = `code-${Math.random().toString(36).slice(2, 9)}`;
     <button
       type="button"
       data-copy
-      class="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:border-indigo-500 hover:text-white transition-colors"
+      class="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:border-indigo-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
     >
       Copy code
     </button>
   </div>
-  <pre class="overflow-x-auto p-4 text-sm leading-relaxed text-slate-300"><code data-before class="hidden">{before}</code><code data-after>{after}</code></pre>
+  <pre class="overflow-x-auto p-4 text-sm leading-relaxed text-slate-300 font-mono" tabindex="0" aria-label="Java code sample"><code data-before class="hidden">{before}</code><code data-after>{after}</code></pre>
 </div>
 
 <script>
@@ -55,6 +59,7 @@ const id = `code-${Math.random().toString(36).slice(2, 9)}`;
       tabs.forEach((tab) => {
         const isActive = tab.getAttribute('data-view') === view;
         tab.setAttribute('aria-pressed', String(isActive));
+        tab.setAttribute('aria-selected', String(isActive));
         tab.classList.toggle('bg-indigo-600', isActive);
         tab.classList.toggle('text-white', isActive);
         tab.classList.toggle('text-slate-400', !isActive);
@@ -70,8 +75,13 @@ const id = `code-${Math.random().toString(36).slice(2, 9)}`;
     copyBtn?.addEventListener('click', async () => {
       const text = active === 'before' ? beforeEl?.textContent : afterEl?.textContent;
       if (!text) return;
-      await navigator.clipboard.writeText(text);
-      copyBtn.textContent = 'Copied!';
+
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = 'Copied!';
+      } catch {
+        copyBtn.textContent = 'Copy failed';
+      }
       setTimeout(() => {
         copyBtn.textContent = 'Copy code';
       }, 1500);

@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CodeToggle from '../../components/CodeToggle.astro';
 import Quiz from '../../components/Quiz.astro';
 import { patterns, getPattern, categoryLabels } from '../../data/patterns';
+import { patternPath, sitePath } from '../../utils/paths';
 
 export function getStaticPaths() {
   return patterns.map((pattern) => ({
@@ -16,6 +17,10 @@ const related = pattern.relatedPatterns
   .map((slug) => getPattern(slug))
   .filter(Boolean);
 
+const patternIndex = patterns.findIndex((p) => p.slug === pattern.slug);
+const prevPattern = patternIndex > 0 ? patterns[patternIndex - 1] : null;
+const nextPattern = patternIndex < patterns.length - 1 ? patterns[patternIndex + 1] : null;
+
 const categoryColor: Record<string, string> = {
   creational: 'text-emerald-400',
   structural: 'text-sky-400',
@@ -24,8 +29,10 @@ const categoryColor: Record<string, string> = {
 ---
 
 <BaseLayout title={pattern.name} description={pattern.oneLiner}>
-  <nav class="mb-6 text-sm text-slate-500">
-    <a href="/" class="hover:text-indigo-400 transition-colors">Home</a>
+  <nav class="mb-6 text-sm text-slate-500" aria-label="Breadcrumb">
+    <a href={sitePath()} class="hover:text-indigo-400 transition-colors">Home</a>
+    <span class="mx-2">/</span>
+    <a href={sitePath('#patterns')} class="hover:text-indigo-400 transition-colors">Patterns</a>
     <span class="mx-2">/</span>
     <span class="text-slate-400">{pattern.name}</span>
   </nav>
@@ -62,7 +69,7 @@ const categoryColor: Record<string, string> = {
         <ul class="mt-3 space-y-2 text-sm text-slate-300">
           {pattern.whenToUse.map((item) => (
             <li class="flex gap-2">
-              <span class="text-emerald-500">✓</span>
+              <span class="text-emerald-500 shrink-0">✓</span>
               <span>{item}</span>
             </li>
           ))}
@@ -73,7 +80,7 @@ const categoryColor: Record<string, string> = {
         <ul class="mt-3 space-y-2 text-sm text-slate-300">
           {pattern.whenNotToUse.map((item) => (
             <li class="flex gap-2">
-              <span class="text-rose-500">✗</span>
+              <span class="text-rose-500 shrink-0">✗</span>
               <span>{item}</span>
             </li>
           ))}
@@ -98,8 +105,8 @@ const categoryColor: Record<string, string> = {
           <div class="mt-4 flex flex-wrap gap-3">
             {related.map((p) => (
               <a
-                href={`/patterns/${p!.slug}`}
-                class="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-indigo-500 hover:text-white transition-colors"
+                href={patternPath(p!.slug)}
+                class="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-indigo-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
               >
                 {p!.name} →
               </a>
@@ -108,5 +115,30 @@ const categoryColor: Record<string, string> = {
         </section>
       )
     }
+
+    <nav class="flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 pt-8" aria-label="Pattern navigation">
+      {
+        prevPattern ? (
+          <a
+            href={patternPath(prevPattern.slug)}
+            class="text-sm text-slate-400 hover:text-indigo-300 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          >
+            ← {prevPattern.name}
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        nextPattern && (
+          <a
+            href={patternPath(nextPattern.slug)}
+            class="text-sm text-slate-400 hover:text-indigo-300 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          >
+            {nextPattern.name} →
+          </a>
+        )
+      }
+    </nav>
   </div>
 </BaseLayout>
