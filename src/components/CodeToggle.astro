@@ -1,0 +1,80 @@
+---
+interface Props {
+  before: string;
+  after: string;
+}
+
+const { before, after } = Astro.props;
+const id = `code-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<div class="code-toggle rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden" data-code-toggle={id}>
+  <div class="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
+    <div class="flex gap-2">
+      <button
+        type="button"
+        data-view="before"
+        class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+        aria-pressed="true"
+      >
+        Without pattern
+      </button>
+      <button
+        type="button"
+        data-view="after"
+        class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+        aria-pressed="false"
+      >
+        With pattern
+      </button>
+    </div>
+    <button
+      type="button"
+      data-copy
+      class="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-400 hover:border-indigo-500 hover:text-white transition-colors"
+    >
+      Copy code
+    </button>
+  </div>
+  <pre class="overflow-x-auto p-4 text-sm leading-relaxed text-slate-300"><code data-before class="hidden">{before}</code><code data-after>{after}</code></pre>
+</div>
+
+<script>
+  document.querySelectorAll('[data-code-toggle]').forEach((root) => {
+    const beforeEl = root.querySelector('[data-before]');
+    const afterEl = root.querySelector('[data-after]');
+    const tabs = root.querySelectorAll('.code-tab');
+    const copyBtn = root.querySelector('[data-copy]');
+
+    let active = 'after';
+
+    const show = (view: string) => {
+      active = view;
+      beforeEl?.classList.toggle('hidden', view !== 'before');
+      afterEl?.classList.toggle('hidden', view !== 'after');
+      tabs.forEach((tab) => {
+        const isActive = tab.getAttribute('data-view') === view;
+        tab.setAttribute('aria-pressed', String(isActive));
+        tab.classList.toggle('bg-indigo-600', isActive);
+        tab.classList.toggle('text-white', isActive);
+        tab.classList.toggle('text-slate-400', !isActive);
+      });
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => show(tab.getAttribute('data-view') ?? 'after'));
+    });
+
+    show('after');
+
+    copyBtn?.addEventListener('click', async () => {
+      const text = active === 'before' ? beforeEl?.textContent : afterEl?.textContent;
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy code';
+      }, 1500);
+    });
+  });
+</script>
