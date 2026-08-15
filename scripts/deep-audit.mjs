@@ -26,7 +26,7 @@ function auditDist() {
     return;
   }
 
-  const required = ['Real-life analogy', 'Without vs with', 'Run it', 'Quiz', 'When to use or skip'];
+  const required = ['The problem', 'Real-life analogy', 'Without vs with', 'Run it', 'Quiz', 'When to use or skip'];
   const stale = ['Patterns in Practice', 'Design Patterns, Simply'];
 
   for (const slug of slugs) {
@@ -71,7 +71,7 @@ async function auditBrowser() {
 
   const sectionLinks = page.locator('nav[aria-label="Page sections"] a');
   const count = await sectionLinks.count();
-  if (count !== 6) record('HIGH', 'Observer', `Expected 6 section jumps, got ${count}`);
+  if (count !== 7) record('HIGH', 'Observer', `Expected 7 section jumps, got ${count}`);
 
   const whenJump = sectionLinks.filter({ hasText: 'When to use' });
   if (await whenJump.count() === 0) record('HIGH', 'Observer', 'When to use jump missing');

@@ -55,28 +55,27 @@ export const patternStories: Record<string, PatternStory> = {
     problemStatement:
       'When export logic lives in one giant method full of if/else branches for PDF, Excel, and CSV, every new format forces you to edit that same method. Callers start duplicating construction code, and the export feature becomes a tangled kitchen where everyone cooks their own drink instead of ordering at the counter.',
     tradeoffIntro:
-      'Using the coffee-shop example: without Factory Method, exportReport() is like customers walking into the kitchen and following different recipes themselves. With Factory Method, you order “latte” at the counter and createExporter("pdf") returns the right drink class behind the scenes.',
+      'Without Factory Method, customers walk into the kitchen and follow recipes themselves. With it, you say “latte” at the counter and the barista returns the right drink class behind the scenes.',
     scene: [
       'You walk up to the counter and say “latte.” You never open the recipe book, measure beans, or steam milk yourself — that work stays behind the counter where it belongs.',
       'If every customer had to enter the kitchen and follow a different recipe card, the line would stall and mistakes would pile up. One person might use the wrong grind; another might forget to froth the milk.',
       'Factory Method works the same way in code: the client names what it wants, and a creator method picks and builds the right concrete class. You get your coffee without knowing which exact recipe class was instantiated.',
     ],
     without: [
-      'exportReport() grows with if/else for PDF, Excel, CSV, and every new format means editing the same sprawling method — like every customer walking into the kitchen.',
-      'Callers start copying construction snippets, so PDF setup logic appears in three different services and drifts out of sync.',
-      'Adding CSV support requires touching the central dispatcher again instead of dropping in one small exporter class.',
+      'Customer.order() grows with if/else for latte, espresso, and every new drink means editing the same sprawling method — like every customer walking into the kitchen.',
+      'Kiosk screens copy the same recipe branching, so latte logic appears in three places and drifts out of sync.',
+      'Adding a mocha requires touching the central dispatcher again instead of dropping in one small drink class.',
     ],
     with: [
-      'The client asks creator.createExporter("pdf") at the counter — one line, no kitchen access required.',
-      'A new format is just a new PdfExporter or CsvExporter class; the factory wires it in without another elseif in the client.',
-      'Construction details stay behind the counter, so the order-taker code stays stable even when the kitchen adds seasonal drinks.',
+      'The customer says order("latte") at the counter — one line, no kitchen access required.',
+      'A new drink is just a new Latte or Espresso class; the barista factory wires it in without another elseif in the client.',
+      'Recipe details stay behind the counter, so the order-taker code stays stable even when the kitchen adds seasonal drinks.',
     ],
-    codeBridge: 'Factory Method = coffee order: createExporter() hides Pdf vs Excel construction.',
-    codeBeforeHint: 'Without Factory — giant if/else at the counter (client picks every recipe step).',
-    codeAfterHint: 'With Factory — say “latte”; creator returns the right drink class.',
+    codeBridge: 'Factory Method = coffee order: the barista picks Latte vs Espresso behind the counter.',
+    codeBeforeHint: 'Without Factory — Customer branches on drink type in the kitchen.',
+    codeAfterHint: 'With Factory — say “latte”; BaristaFactory returns the right Coffee class.',
     tryItSteps: [
-      'Run ▶ — same coffee-shop export demo (PDF and Excel lines).',
-      'Imagine “latte” = createExporter("pdf") behind the counter.',
+      'Run ▶ — latte and espresso lines print from the same counter.',
     ],
   },
   'abstract-factory': {
@@ -114,23 +113,23 @@ export const patternStories: Record<string, PatternStory> = {
     overview:
       'At a burrito counter you pick rice, beans, and protein step by step while the worker assembles layers in order. You never toss raw ingredients into a bag and hope for the best. In code, a builder lets you set optional fields fluently and calls build() only when the object is complete and valid.',
     problemStatement:
-      'When a class needs a dozen constructor arguments — host, path, headers, body, timeout, retries — callers pass null in the wrong slot or forget required fields. Half-built objects leak into the codebase because there is no clear moment when assembly is finished and checked.',
+      'When a burrito needs rice, beans, protein, salsa, and cheese, a single constructor with a dozen boolean flags forces callers to pass arguments in the wrong order or skip required layers. Half-built orders leak into the kitchen because nothing validates the stack before wrapping.',
     tradeoffIntro:
       'Using the burrito-counter example: without Builder, you dump every ingredient into one bag at once and pray the order is right. With Builder, you layer rice, beans, and protein step by step, then build() hands you a complete burrito.',
     scene: [
       'You stand at the counter and choose rice, then beans, then carnitas — each topping added in a sensible order. The worker assembles the burrito on the line; you do not reach over and dump raw ingredients into a to-go bag yourself.',
       'If you had to name every ingredient in one breath before anyone started wrapping, you would mix up the order or skip a step. A burrito with rice on the outside and no tortilla is what bad constructors feel like.',
-      'Builder works the same way in code: builder.host("api.com").path("/users").timeout(30).build() layers options fluently, and build() returns a valid request or fails before anything half-baked escapes.',
+      'Builder works the same way in code: builder.rice().beans().protein().build() layers toppings fluently, and build() returns a complete burrito or fails before anything half-wrapped escapes.',
     ],
     without: [
-      'new HttpRequest(host, path, headers, body, timeout, retries…) forces twelve positional args — easy to pass null in the wrong slot, like forgetting the tortilla.',
-      'Optional fields multiply constructor overloads, so you end up with HttpRequest(a,b), HttpRequest(a,b,c), and still no validation at construction time.',
-      'Half-built objects float around because nothing enforces that every required layer was added before the object is used.',
+      'new Burrito(rice, beans, protein, salsa, cheese, guac…) forces twelve positional args — easy to pass false in the wrong slot, like forgetting the tortilla.',
+      'Optional toppings multiply constructor overloads, so you end up with Burrito(a,b), Burrito(a,b,c), and still no validation before wrapping.',
+      'Half-wrapped burritos float around because nothing enforces that every required layer was added before serving.',
     ],
     with: [
-      'builder.rice().beans().protein().build() adds only what you need, in any order that makes sense, without a 12-argument constructor.',
-      'build() validates the burrito before handing it over — missing host or path throws early instead of failing mid-request.',
-      'The counter assembles; the customer never cooks at the table, so request construction stays readable and safe.',
+      'builder.rice().beans().protein().build() adds only what you need, in any sensible order, without a 12-argument constructor.',
+      'build() validates the burrito before handing it over — missing rice or protein throws early instead of failing at the register.',
+      'The counter worker assembles; the customer never cooks at the table, so burrito construction stays readable and safe.',
     ],
     codeBridge: 'Builder = burrito line: fluent steps, then build() returns the finished object.',
     codeBeforeHint: 'Without — one giant constructor (everything in one bag, error-prone).',

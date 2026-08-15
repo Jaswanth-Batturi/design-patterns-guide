@@ -15,7 +15,7 @@ const SLUGS = [
 
 const STALE = ['Patterns in Practice', 'Design Patterns, Simply', 'Real-life scene → code'];
 const PATTERN_SECTIONS = ['Real-life analogy', 'Without vs with', 'Code: problem vs fix', 'Run it', 'Quiz'];
-const SECTION_IDS = ['story', 'code', 'tradeoffs', 'run', 'decision', 'quiz'];
+const SECTION_IDS = ['problem', 'story', 'code', 'tradeoffs', 'run', 'decision', 'quiz'];
 
 const issues = [];
 const record = (severity, area, msg) => {
@@ -117,8 +117,8 @@ async function testPatternPage(page, slug) {
   }
 
   const jumps = page.locator('nav[aria-label="Page sections"] a.section-jump');
-  if (await jumps.count() !== 6) {
-    record('HIGH', slug, `Expected 6 section jumps, got ${await jumps.count()}`);
+  if (await jumps.count() !== 7) {
+    record('HIGH', slug, `Expected 7 section jumps, got ${await jumps.count()}`);
   }
 
   const homeCrumb = page.getByRole('navigation', { name: 'Breadcrumb' }).getByText('Home');
