@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PatternCard from '../components/PatternCard.astro';
 import PatternFinder from '../components/PatternFinder.astro';
 import { patterns, categoryLabels, type PatternCategory } from '../data/patterns';
+import { sitePath } from '../utils/paths';
 
 const grouped = {
   creational: patterns.filter((p) => p.category === 'creational'),
@@ -40,10 +41,10 @@ const categories: PatternCategory[] = ['creational', 'structural', 'behavioral']
     </div>
 
     <div class="mt-8 flex flex-wrap gap-3">
-      <a href="#patterns" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 hover:bg-indigo-500 transition-colors">
+      <a href={sitePath('#patterns')} class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 hover:bg-indigo-500 transition-colors">
         Browse all 23 patterns
       </a>
-      <a href="#finder" class="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:border-indigo-500 hover:text-white transition-colors">
+      <a href={sitePath('#finder')} class="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:border-indigo-500 hover:text-white transition-colors">
         Help me pick a pattern
       </a>
     </div>

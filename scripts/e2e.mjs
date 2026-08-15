@@ -38,15 +38,20 @@ async function run() {
     record('HIGH', 'Home', `Expected 23 pattern cards, found ${cardCount}`);
   }
 
-  // Hero CTAs scroll
-  await page.locator('a[href="#patterns"]').first().click();
+  // Hero CTAs use base-prefixed anchors
+  const browseHref = await page.locator('a').filter({ hasText: 'Browse all 23 patterns' }).first().getAttribute('href');
+  if (!browseHref?.includes('patterns')) {
+    record('HIGH', 'Home', `Browse CTA href missing #patterns: ${browseHref}`);
+  }
+
+  await page.locator('a[href*="patterns"]').filter({ hasText: 'Browse all 23 patterns' }).first().click();
   await page.waitForTimeout(300);
   const patternsBox = await page.locator('#patterns').boundingBox();
   if (!patternsBox || patternsBox.y > 200) {
     record('MED', 'Home', 'Browse patterns anchor may not scroll to #patterns');
   }
 
-  await page.locator('a[href="#finder"]').first().click();
+  await page.locator('a[href*="finder"]').filter({ hasText: 'Help me pick' }).first().click();
   await page.waitForTimeout(300);
 
   // Sticky header nav
@@ -122,17 +127,15 @@ async function run() {
   await page.waitForLoadState('domcontentloaded');
   await page.goto(`${BASE}/patterns/observer/`, { waitUntil: 'domcontentloaded' });
 
-  // Code toggle
+  // Code toggle — default shows WITHOUT pattern first
   const beforeTab = page.getByRole('tab', { name: 'Without pattern' });
   const afterTab = page.getByRole('tab', { name: 'With pattern' });
-  await beforeTab.click();
   if (await beforeTab.getAttribute('aria-selected') !== 'true') {
-    record('HIGH', 'Code', 'Without pattern tab not selected after click');
+    record('HIGH', 'Code', 'Default tab should be Without pattern');
   }
   const beforeVisible = await page.locator('[data-panel="before"]').isVisible();
-  const afterHidden = await page.locator('[data-panel="after"]').isHidden();
-  if (!beforeVisible || !afterHidden) {
-    record('HIGH', 'Code', 'Code panels do not toggle correctly');
+  if (!beforeVisible) {
+    record('HIGH', 'Code', 'Without pattern panel should be visible by default');
   }
   await afterTab.click();
 
@@ -180,8 +183,20 @@ async function run() {
     record('HIGH', 'CodeRunner', 'OneCompiler editor did not become visible after load');
   }
 
+  // Section jump nav
+  const jumpNav = page.locator('nav[aria-label="Page sections"] a.section-jump');
+  if (await jumpNav.count() < 6) {
+    record('HIGH', 'Pattern page', 'Section jump links missing');
+  }
+  await jumpNav.filter({ hasText: 'Try it' }).click();
+  await page.waitForTimeout(300);
+  const tryItBox = await page.locator('#try-it').boundingBox();
+  if (!tryItBox || tryItBox.y > 250) {
+    record('MED', 'Pattern page', 'Try it jump link may not scroll to #try-it');
+  }
+
   // Related pattern link
-  const related = page.locator('section').filter({ hasText: 'Related patterns' }).locator('a').first();
+  const related = page.locator('section').filter({ hasText: 'Often confused with' }).locator('a').first();
   if (await related.count() > 0) {
     const relHref = await related.getAttribute('href');
     if (!relHref?.includes('/patterns/')) {
@@ -228,6 +243,14 @@ async function run() {
     // Quick tab click each page
     await page.getByRole('tab', { name: 'Without pattern' }).click();
     await page.getByRole('tab', { name: 'With pattern' }).click();
+  }
+
+  // Pattern search
+  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+  await page.locator('#pattern-search').fill('strategy');
+  await page.waitForTimeout(150);
+  if (await page.locator('.pattern-card:not(.hidden)').count() !== 1) {
+    record('HIGH', 'Search', 'strategy filter failed on homepage');
   }
 
   // Skip link

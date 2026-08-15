@@ -7,9 +7,10 @@ interface Props {
   takeaway: string;
   beforeHint?: string;
   afterHint?: string;
+  defaultView?: 'before' | 'after';
 }
 
-const { before, after, takeaway, beforeHint, afterHint } = Astro.props;
+const { before, after, takeaway, beforeHint, afterHint, defaultView = 'before' } = Astro.props;
 const id = `code-${Math.random().toString(36).slice(2, 9)}`;
 const beforeHtml = await highlightJava(before);
 const afterHtml = await highlightJava(after);
@@ -29,8 +30,8 @@ const afterHtml = await highlightJava(after);
           data-view="before"
           role="tab"
           class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"
-          aria-pressed="false"
-          aria-selected="false"
+          aria-pressed={defaultView === 'before' ? 'true' : 'false'}
+          aria-selected={defaultView === 'before' ? 'true' : 'false'}
         >
           😣 Without pattern
         </button>
@@ -39,8 +40,8 @@ const afterHtml = await highlightJava(after);
           data-view="after"
           role="tab"
           class="code-tab rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
-          aria-pressed="true"
-          aria-selected="true"
+          aria-pressed={defaultView === 'after' ? 'true' : 'false'}
+          aria-selected={defaultView === 'after' ? 'true' : 'false'}
         >
           ✅ With pattern
         </button>
@@ -53,16 +54,16 @@ const afterHtml = await highlightJava(after);
         Copy code
       </button>
     </div>
-    <p data-hint="before" class="hidden border-b border-rose-500/20 bg-rose-950/20 px-4 py-2 text-xs text-rose-200/90">
+    <p data-hint="before" class={`border-b border-rose-500/20 bg-rose-950/20 px-4 py-2 text-xs text-rose-200/90 ${defaultView === 'before' ? '' : 'hidden'}`}>
       {beforeHint ?? 'Notice: tight coupling, hard to extend, one change forces many edits.'}
     </p>
-    <p data-hint="after" class="border-b border-emerald-500/20 bg-emerald-950/20 px-4 py-2 text-xs text-emerald-200/90">
+    <p data-hint="after" class={`border-b border-emerald-500/20 bg-emerald-950/20 px-4 py-2 text-xs text-emerald-200/90 ${defaultView === 'after' ? '' : 'hidden'}`}>
       {afterHint ?? 'Notice: roles are separated — you can add new behavior without breaking old code.'}
     </p>
-    <div data-panel="before" class="hidden highlighted-panel" aria-hidden="true">
+    <div data-panel="before" class={`highlighted-panel ${defaultView === 'before' ? '' : 'hidden'}`} aria-hidden={defaultView !== 'before' ? 'true' : 'false'}>
       <div class="highlighted-code overflow-x-auto text-sm leading-relaxed" set:html={beforeHtml} />
     </div>
-    <div data-panel="after" class="highlighted-panel" aria-hidden="false">
+    <div data-panel="after" class={`highlighted-panel ${defaultView === 'after' ? '' : 'hidden'}`} aria-hidden={defaultView !== 'after' ? 'true' : 'false'}>
       <div class="highlighted-code overflow-x-auto text-sm leading-relaxed" set:html={afterHtml} />
     </div>
   </div>
@@ -82,7 +83,7 @@ const afterHtml = await highlightJava(after);
   }
 </style>
 
-<script>
+<script define:vars={{ defaultView }}>
   document.querySelectorAll('[data-code-toggle]').forEach((root) => {
     const beforePanel = root.querySelector('[data-panel="before"]');
     const afterPanel = root.querySelector('[data-panel="after"]');
@@ -91,7 +92,7 @@ const afterHtml = await highlightJava(after);
     const tabs = root.querySelectorAll('.code-tab');
     const copyBtn = root.querySelector('[data-copy]');
 
-    let active = 'after';
+    let active = defaultView ?? 'before';
 
     const getActiveText = () => {
       const raw = active === 'before' ? root.getAttribute('data-before-raw') : root.getAttribute('data-after-raw');
@@ -122,7 +123,7 @@ const afterHtml = await highlightJava(after);
       tab.addEventListener('click', () => show(tab.getAttribute('data-view') ?? 'after'));
     });
 
-    show('after');
+    show(defaultView ?? 'before');
 
     copyBtn?.addEventListener('click', async () => {
       const text = getActiveText();

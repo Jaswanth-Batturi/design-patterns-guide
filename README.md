@@ -1,22 +1,21 @@
-# Patterns in Practice
+# Design Patterns, Simply
 
-An interactive guide to software design patterns — real-life analogies, Java examples, quizzes, and a pattern finder.
+Learn when to use each of the 23 Gang of Four patterns — everyday scenes, without/with tradeoffs, runnable Java, and quizzes.
 
 **Live site:** [jaswanth-batturi.github.io/design-patterns-guide](https://jaswanth-batturi.github.io/design-patterns-guide/)
 
 **Repo:** [github.com/Jaswanth-Batturi/design-patterns-guide](https://github.com/Jaswanth-Batturi/design-patterns-guide)
 
-## Features
+## What you get on every pattern page
 
-- **All 23 GoF patterns** — full creational, structural, and behavioral catalog
-- **Real-life analogies** before diving into code
-- **Syntax-highlighted Java** (Shiki) with before/after toggle
-- **OneCompiler Java runner** — embedded editor with pattern code pre-loaded; click Run ▶ to execute
-- **Animated analogy cards** with real-life explanations
-- **Open Graph image** for social sharing
-- **Quick quizzes** per pattern
-- **Pattern Finder** — describe your problem, get suggestions
-- **100% free hosting** on GitHub Pages
+1. **Picture this in real life** — 3-step everyday scene
+2. **Without vs with** — concrete pains and wins
+3. **When to use / skip** — decision checklist
+4. **Code comparison** — starts on *without pattern* so you see the problem first
+5. **Runnable Java demo** — short `main()` in embedded OneCompiler editor
+6. **Quiz** — 2 questions with explanations
+
+Plus a **pattern finder** on the home page and **library search** across all 23 patterns.
 
 ## Local development
 
@@ -27,35 +26,24 @@ npm run dev
 
 Open [http://localhost:4321/design-patterns-guide](http://localhost:4321/design-patterns-guide)
 
-### Deploy to GitHub Pages
-
-1. Push to `main` on this repo
-2. Go to **Settings → Pages → Build and deployment → Source: GitHub Actions**
-3. The workflow deploys automatically on each push to `main`
-
-Site URL: `https://jaswanth-batturi.github.io/design-patterns-guide/`
-
-## Build
+## Quality checks
 
 ```bash
-npm run build
-npm run preview
+npm run test:site      # build + static verification
+npm run test:e2e       # Playwright (needs preview on :4321)
+npm run test:e2e:live  # against GitHub Pages
+npm run test:deep      # deeper content + UX audit
 ```
+
+## Deploy
+
+Push to `main` — GitHub Actions deploys to GitHub Pages at `/design-patterns-guide/`.
 
 ## Tech stack
 
-- [Astro](https://astro.build) — static site generator
-- [Tailwind CSS](https://tailwindcss.com) — styling
-- GitHub Pages + GitHub Actions — free hosting
-
-## Contributing
-
-Contributions welcome! Add patterns, improve analogies, or fix quizzes.
-
-1. Fork the repo
-2. Create a branch (`git checkout -b add-adapter-pattern`)
-3. Add pattern data in `src/data/patterns.ts`
-4. Open a pull request
+- [Astro](https://astro.build) + [Tailwind CSS](https://tailwindcss.com)
+- [Shiki](https://shiki.style/) syntax highlighting
+- [OneCompiler](https://onecompiler.com/) embed for Java execution
 
 ## Author
 

@@ -740,30 +740,38 @@ public class CommandDemo {
     codeTakeaway:
       'Interpreter builds a tiny expression tree. Each node knows how to evaluate itself.',
     tryItSteps: [
-      'Run ▶ — rule evaluates true for admin+editor, false for guest.',
+      'Run ▶ inside the editor.',
+      'admin passes adminOnly? true — single role check works.',
+      'admin passes adminAndEditor? false — needs BOTH roles on one user (rare).',
     ],
     codeBeforeHint: 'String parsing with nested if/contains.',
     codeAfterHint: 'Composable expression objects evaluate the rule.',
-    runDemo: `interface Expression { boolean interpret(String role); }
+    runDemo: `interface Expression { boolean interpret(User user); }
+
+class User {
+    final String role;
+    User(String role) { this.role = role; }
+}
 
 class RoleExpr implements Expression {
     private final String need;
     RoleExpr(String need) { this.need = need; }
-    public boolean interpret(String role) { return role.equals(need); }
+    public boolean interpret(User user) { return user.role.equals(need); }
 }
 
 class AndExpr implements Expression {
     private final Expression a, b;
     AndExpr(Expression a, Expression b) { this.a = a; this.b = b; }
-    public boolean interpret(String role) { return a.interpret(role) && b.interpret(role); }
+    public boolean interpret(User user) { return a.interpret(user) && b.interpret(user); }
 }
 
 public class InterpreterDemo {
     public static void main(String[] args) {
         Expression adminOnly = new RoleExpr("admin");
-        Expression adminAndEditor = new AndExpr(new RoleExpr("admin"), new RoleExpr("editor"));
-        System.out.println("admin passes adminOnly? " + adminOnly.interpret("admin"));
-        System.out.println("guest passes adminAndEditor? " + adminAndEditor.interpret("guest"));
+        User admin = new User("admin");
+        User guest = new User("guest");
+        System.out.println("admin passes adminOnly? " + adminOnly.interpret(admin));
+        System.out.println("guest passes adminOnly? " + adminOnly.interpret(guest));
     }
 }`,
   },

@@ -5,7 +5,7 @@ export const creationalPatterns: Pattern[] = [
     slug: 'singleton',
     name: 'Singleton',
     category: 'creational',
-    oneLiner: 'Ensure a class has only one instance and provide a global access point to it.',
+    oneLiner: 'One shared instance for the whole app — like one electric meter for every room.',
     analogy:
       'One manager per store, one president per country, one remote paired to one TV — there should only be one authoritative instance.',
     analogyIcon: '🔑',

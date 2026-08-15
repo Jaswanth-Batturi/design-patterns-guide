@@ -18,7 +18,7 @@ const embedSrc =
   <div class="border-b border-slate-800 bg-indigo-950/30 px-4 py-4 sm:px-5">
     <h3 class="text-base font-semibold text-white">Your turn — run {patternName} in Java</h3>
     <p class="mt-1 text-sm text-slate-400">
-      Do not worry about memorizing syntax. Focus on <strong class="text-slate-300">what happens when you Run</strong>.
+      Short demo with <code class="text-indigo-300">main()</code> — focus on what prints when you Run, not memorizing syntax.
     </p>
     <ol class="mt-4 space-y-2 text-sm text-slate-300 list-none">
       {steps.map((step, i) => (
@@ -30,9 +30,13 @@ const embedSrc =
         </li>
       ))}
     </ol>
-    <p class="mt-4 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2 text-xs text-amber-200/90">
-      <strong class="text-amber-300">Look for the Run ▶ button</strong> inside the gray editor box below — not on this page header.
-    </p>
+    <div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-3 text-xs text-amber-200/90">
+      <span class="flex items-center gap-2 font-semibold text-amber-300">
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-600 text-white text-[10px]">▶ Run</span>
+        Inside the editor below
+      </span>
+      <span class="text-amber-200/80">Top-right of the dark gray code box — not this page header.</span>
+    </div>
   </div>
 
   <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-2">
@@ -43,11 +47,11 @@ const embedSrc =
       rel="noopener noreferrer"
       class="text-xs text-indigo-400 hover:text-indigo-300"
     >
-      Open in full editor ↗
+      Stuck? Open full editor ↗
     </a>
   </div>
 
-  <div class="relative min-h-[440px] bg-[#1e1e1e]">
+  <div class="relative min-h-[480px] bg-[#1e1e1e]">
     <div
       data-runner-loading
       class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-sm text-slate-400 bg-slate-950"
@@ -59,7 +63,7 @@ const embedSrc =
       id={frameId}
       title="Java code runner (OneCompiler)"
       src={embedSrc}
-      class="w-full min-h-[440px] border-0 bg-[#1e1e1e] opacity-0 transition-opacity duration-500"
+      class="w-full min-h-[480px] border-0 bg-[#1e1e1e] opacity-0 transition-opacity duration-500"
       data-oc-frame
       loading="lazy"
       allow="clipboard-write"
@@ -90,7 +94,7 @@ const embedSrc =
     iframe.classList.remove('opacity-0');
     iframe.classList.add('opacity-100');
     if (status) {
-      status.textContent = 'Editor ready — find Run ▶ inside the box below';
+      status.textContent = 'Editor ready — click green Run ▶ inside the box below';
       status.classList.add('text-emerald-400/90');
     }
   };
