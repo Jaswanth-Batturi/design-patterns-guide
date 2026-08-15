@@ -55,16 +55,25 @@ const categories: PatternCategory[] = ['creational', 'structural', 'behavioral']
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h2 class="text-2xl font-bold text-white">Pattern library</h2>
-        <p class="mt-2 text-slate-400">All 23 Gang of Four patterns — each page follows the same easy path.</p>
+        <p class="mt-2 text-slate-400">All 23 Gang of Four patterns — same path on every page: scene → tradeoffs → code → run → quiz.</p>
       </div>
-      <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by category" id="category-filters">
-        <button type="button" data-filter="all" class="filter-btn rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400" aria-pressed="true">All</button>
-        {categories.map((cat) => (
-          <button type="button" data-filter={cat} class="filter-btn rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-400 hover:border-indigo-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" aria-pressed="false">
-            {categoryLabels[cat]}
-          </button>
-        ))}
-      </div>
+      <label class="flex w-full sm:w-auto min-w-[200px] flex-col gap-1">
+        <span class="text-xs font-medium text-slate-500">Search patterns</span>
+        <input
+          type="search"
+          id="pattern-search"
+          placeholder="e.g. undo, payment, notify…"
+          class="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        />
+      </label>
+    </div>
+    <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by category" id="category-filters">
+      <button type="button" data-filter="all" class="filter-btn rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400" aria-pressed="true">All</button>
+      {categories.map((cat) => (
+        <button type="button" data-filter={cat} class="filter-btn rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-400 hover:border-indigo-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" aria-pressed="false">
+          {categoryLabels[cat]}
+        </button>
+      ))}
     </div>
 
     {
@@ -92,6 +101,30 @@ const categories: PatternCategory[] = ['creational', 'structural', 'behavioral']
   const filters = document.querySelectorAll('.filter-btn');
   const cards = document.querySelectorAll('.pattern-card');
   const groups = document.querySelectorAll('.pattern-group');
+  const searchInput = document.getElementById('pattern-search');
+
+  const applyVisibility = () => {
+    const filterBtn = document.querySelector('.filter-btn[aria-pressed="true"]');
+    const filter = filterBtn?.getAttribute('data-filter') ?? 'all';
+    const query = (searchInput?.value ?? '').trim().toLowerCase();
+
+    cards.forEach((card) => {
+      const cat = card.getAttribute('data-category');
+      const text = card.textContent?.toLowerCase() ?? '';
+      const matchesFilter = filter === 'all' || cat === filter;
+      const matchesSearch = !query || text.includes(query);
+      card.classList.toggle('hidden', !matchesFilter || !matchesSearch);
+    });
+
+    groups.forEach((group) => {
+      const cat = group.getAttribute('data-category');
+      const visibleInGroup = Array.from(group.querySelectorAll('.pattern-card')).some(
+        (c) => !c.classList.contains('hidden'),
+      );
+      const matchesFilter = filter === 'all' || cat === filter;
+      group.classList.toggle('hidden', !matchesFilter || !visibleInGroup);
+    });
+  };
 
   filters.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -107,17 +140,9 @@ const categories: PatternCategory[] = ['creational', 'structural', 'behavioral']
         b.classList.toggle('text-slate-400', !active);
       });
 
-      cards.forEach((card) => {
-        const cat = card.getAttribute('data-category');
-        const show = filter === 'all' || cat === filter;
-        card.classList.toggle('hidden', !show);
-      });
-
-      groups.forEach((group) => {
-        const cat = group.getAttribute('data-category');
-        const hasVisible = filter === 'all' || cat === filter;
-        group.classList.toggle('hidden', !hasVisible);
-      });
+      applyVisibility();
     });
   });
+
+  searchInput?.addEventListener('input', applyVisibility);
 </script>

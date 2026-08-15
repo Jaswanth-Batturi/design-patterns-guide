@@ -515,63 +515,10 @@ public class History {
     analogy:
       'Think of a newsletter: you subscribe once, and whenever we publish a new article, you get an email. You do not keep checking the website — the publisher notifies you.',
     analogyIcon: '📬',
-    sceneSteps: [
-      'You subscribe to a food blog newsletter',
-      'The blog publishes a new recipe',
-      'You get an email instantly — no need to keep refreshing the site',
-    ],
     problem:
       'You have a subject (like order status) and many interested parties (email service, SMS, analytics, UI). If the subject directly calls each one, you get tight coupling, hard-to-test code, and pain every time you add a new listener.',
     solution:
       'The subject maintains a list of observers. Observers subscribe and unsubscribe. When state changes, the subject notifies all registered observers through a common interface — without knowing their concrete types.',
-    withoutPatternPains: [
-      'OrderStatus must know about email, SMS, analytics, and every future channel',
-      'Adding push notifications means editing OrderStatus again',
-      'You cannot test "send email" without the whole class',
-    ],
-    withPatternWins: [
-      'OrderStatus only says "status changed" — listeners decide what to do',
-      'New listener? Subscribe it — no change to OrderStatus',
-      'Each listener is a small class you can test alone',
-    ],
-    codeTakeaway:
-      'Compare the two tabs: without Observer, setStatus() is a growing list of hard-coded services. With Observer, setStatus() loops over subscribers — that is the whole trick.',
-    tryItSteps: [
-      'Wait for the editor below (spinning loader disappears).',
-      'Click Run ▶ inside the dark editor box (top-right of that box).',
-      'You should see Email and SMS lines when status becomes SHIPPED.',
-      'Add a third line: order.subscribe(s -> System.out.println("Push: " + s)); and Run again.',
-    ],
-    runDemo: `import java.util.ArrayList;
-import java.util.List;
-
-interface OrderObserver {
-    void onStatusChanged(String status);
-}
-
-class OrderStatus {
-    private final List<OrderObserver> observers = new ArrayList<>();
-
-    void subscribe(OrderObserver observer) {
-        observers.add(observer);
-    }
-
-    void setStatus(String status) {
-        System.out.println("Order status is now: " + status);
-        for (OrderObserver observer : observers) {
-            observer.onStatusChanged(status);
-        }
-    }
-}
-
-public class ObserverDemo {
-    public static void main(String[] args) {
-        OrderStatus order = new OrderStatus();
-        order.subscribe(s -> System.out.println("Email: shipped " + s));
-        order.subscribe(s -> System.out.println("SMS: shipped " + s));
-        order.setStatus("SHIPPED");
-    }
-}`,
     whenToUse: [
       'One object\'s state change should update many others',
       'You want loose coupling between event producers and consumers',

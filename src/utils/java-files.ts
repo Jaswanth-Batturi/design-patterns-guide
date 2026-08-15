@@ -9,7 +9,7 @@ export function javaToCompilerFiles(code: string): Array<{ name: string; content
         name: 'Main.java',
         content: `public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello from Patterns in Practice");
+        System.out.println("Hello from Design Patterns, Simply");
     }
 }`,
       },

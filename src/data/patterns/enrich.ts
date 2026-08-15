@@ -1,4 +1,5 @@
 import type { Pattern } from './types';
+import { patternEnrichment } from './pattern-overrides';
 
 export interface EnrichedPattern extends Pattern {
   sceneSteps: string[];
@@ -7,13 +8,15 @@ export interface EnrichedPattern extends Pattern {
   codeTakeaway: string;
   tryItSteps: string[];
   runDemo: string;
+  codeBeforeHint: string;
+  codeAfterHint: string;
 }
 
 const DEFAULT_TRY_STEPS = [
   'Wait until the editor appears below (about 2 seconds).',
-  'Read the code — it is a smaller runnable version of the pattern.',
+  'Read the short demo — it is simpler than the full example above.',
   'Click the green Run ▶ button inside the editor (top-right of the code box).',
-  'Read the output. Then change one line (e.g. add another listener) and Run again.',
+  'Read the output, then change one line and Run again to see the effect.',
 ];
 
 function sceneFromAnalogy(analogy: string): string[] {
@@ -23,9 +26,9 @@ function sceneFromAnalogy(analogy: string): string[] {
     .filter((s) => s.length > 12);
   if (chunks.length >= 2) return chunks.slice(0, 3);
   return [
-    'Imagine a normal day-to-day situation.',
+    'Picture an everyday situation you already know.',
     analogy.split(/[—–-]/)[0]?.trim() || analogy.slice(0, 80),
-    'That is the same problem this pattern solves in code.',
+    'That same tension shows up in code — this pattern resolves it.',
   ];
 }
 
@@ -46,15 +49,23 @@ function winsFromSolution(solution: string): string[] {
 }
 
 export function enrichPattern(pattern: Pattern): EnrichedPattern {
+  const override = patternEnrichment[pattern.slug];
+
   return {
     ...pattern,
-    sceneSteps: pattern.sceneSteps ?? sceneFromAnalogy(pattern.analogy),
-    withoutPatternPains: pattern.withoutPatternPains ?? painsFromProblem(pattern.problem),
-    withPatternWins: pattern.withPatternWins ?? winsFromSolution(pattern.solution),
+    sceneSteps: pattern.sceneSteps ?? override?.sceneSteps ?? sceneFromAnalogy(pattern.analogy),
+    withoutPatternPains:
+      pattern.withoutPatternPains ?? override?.withoutPatternPains ?? painsFromProblem(pattern.problem),
+    withPatternWins: pattern.withPatternWins ?? override?.withPatternWins ?? winsFromSolution(pattern.solution),
     codeTakeaway:
       pattern.codeTakeaway ??
-      `Without the pattern, code is harder to change — one class does too much or uses long if/else chains. With the pattern, each piece has one job and you can extend without rewriting everything.`,
-    tryItSteps: pattern.tryItSteps ?? DEFAULT_TRY_STEPS,
-    runDemo: pattern.runDemo ?? pattern.codeAfter,
+      override?.codeTakeaway ??
+      `Without the pattern, one class does too much or if/else chains grow. With ${pattern.name}, each piece has one job and you extend without rewriting everything.`,
+    tryItSteps: pattern.tryItSteps ?? override?.tryItSteps ?? DEFAULT_TRY_STEPS,
+    runDemo: pattern.runDemo ?? override?.runDemo ?? pattern.codeAfter,
+    codeBeforeHint:
+      override?.codeBeforeHint ?? 'Notice tight coupling and code that is hard to extend.',
+    codeAfterHint:
+      override?.codeAfterHint ?? 'Notice separated roles — add behavior without breaking old code.',
   };
 }

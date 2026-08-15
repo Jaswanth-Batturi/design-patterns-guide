@@ -20,12 +20,15 @@ const categoryColor: Record<string, string> = {
   href={href}
   class="group flex flex-col rounded-2xl border border-slate-800 bg-slate-900/50 p-5 shadow-sm transition hover:border-indigo-500/50 hover:bg-slate-900 hover:shadow-indigo-900/20 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
 >
-  <div class="mb-3 flex items-center justify-between gap-2">
-    <h3 class="text-lg font-semibold text-white group-hover:text-indigo-300 transition-colors">{pattern.name}</h3>
-    <span class={`rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${categoryColor[pattern.category]}`}>
+  <div class="mb-3 flex items-start justify-between gap-2">
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="text-2xl shrink-0" aria-hidden="true">{pattern.analogyIcon}</span>
+      <h3 class="text-lg font-semibold text-white group-hover:text-indigo-300 transition-colors">{pattern.name}</h3>
+    </div>
+    <span class={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${categoryColor[pattern.category]}`}>
       {categoryLabels[pattern.category]}
     </span>
   </div>
   <p class="text-sm leading-relaxed text-slate-400">{pattern.oneLiner}</p>
-  <span class="mt-4 text-sm font-medium text-indigo-400 group-hover:text-indigo-300">Learn pattern →</span>
+  <span class="mt-4 text-sm font-medium text-indigo-400 group-hover:text-indigo-300">Real-life scene → code → quiz →</span>
 </a>
