@@ -5,6 +5,7 @@ import { patternCodeSnippets } from './pattern-code-snippets';
 import { deriveRunExpect } from '../../utils/run-expect';
 
 export interface EnrichedPattern extends Pattern {
+  exampleName: string;
   sceneSteps: [string, string, string];
   withoutPatternPains: [string, string, string];
   withPatternWins: [string, string, string];
@@ -28,6 +29,7 @@ function storyFor(pattern: Pattern): PatternStory {
   if (story) return story;
 
   return {
+    example: pattern.name,
     scene: tuple3(
       pattern.analogy
         .split(/[.!?]+/)
@@ -48,15 +50,11 @@ function storyFor(pattern: Pattern): PatternStory {
         .slice(0, 3),
     ),
     codeBridge: `See how ${pattern.name} fixes this in the code below.`,
-    runExpect: 'Check the console output',
+    codeBeforeHint: 'Without the pattern — messy, coupled, hard to extend.',
+    codeAfterHint: 'With the pattern — same example, cleaner structure.',
+    tryItSteps: ['Wait for the editor, click Run ▶, compare output below.'],
   };
 }
-
-const defaultTryItSteps = [
-  'Wait until the editor finishes loading.',
-  'Click Run ▶ inside the dark editor box.',
-  'Compare the output with the expected lines below.',
-];
 
 export function enrichPattern(pattern: Pattern): EnrichedPattern {
   const override = patternEnrichment[pattern.slug];
@@ -66,17 +64,18 @@ export function enrichPattern(pattern: Pattern): EnrichedPattern {
 
   return {
     ...pattern,
+    exampleName: story.example,
     sceneSteps: story.scene,
     withoutPatternPains: story.without,
     withPatternWins: story.with,
     codeBridge: story.codeBridge,
     runExpect: deriveRunExpect(runDemo),
-    tryItSteps: override?.tryItSteps ?? defaultTryItSteps,
+    tryItSteps: story.tryItSteps,
     displayCodeBefore: snippets?.before ?? pattern.codeBefore,
     displayCodeAfter: snippets?.after ?? pattern.codeAfter,
-    codeTakeaway: pattern.codeTakeaway ?? override?.codeTakeaway ?? story.codeBridge,
+    codeTakeaway: story.codeBridge,
     runDemo,
-    codeBeforeHint: override?.codeBeforeHint ?? 'The painful version — notice repetition and coupling.',
-    codeAfterHint: override?.codeAfterHint ?? 'The pattern version — same idea, cleaner structure.',
+    codeBeforeHint: story.codeBeforeHint,
+    codeAfterHint: story.codeAfterHint,
   };
 }

@@ -1,11 +1,11 @@
 /** Short code snippets for learning — not full textbook examples. */
 export const patternCodeSnippets: Record<string, { before: string; after: string }> = {
   singleton: {
-    before: `// Two configs — settings can disagree
+    before: `// Home Wi‑Fi / AppConfig — two routers = two configs
 AppConfig a = new AppConfig();
 AppConfig b = new AppConfig();
 // a and b are different objects`,
-    after: `// One shared config
+    after: `// One shared config (one Wi‑Fi network)
 AppConfig a = AppConfig.getInstance();
 AppConfig b = AppConfig.getInstance();
 // a == b  → true`,
@@ -104,11 +104,13 @@ stack.pop().undo();`,
 editor.restore(snapshot);`,
   },
   observer: {
-    before: `setStatus(s) {
-    email.send(s); sms.send(s); // hard-coded
+    before: `// Stock ticker — alerts hard-coded inside
+setPrice(p) {
+    phoneAlert(p); emailAlert(p);
 }`,
-    after: `setStatus(s) {
-    for (o : observers) o.onChange(s);
+    after: `// Stock alerts — subscribe listeners
+setPrice(p) {
+    for (o : observers) o.onPriceChanged("AAPL", p);
 }`,
   },
   state: {

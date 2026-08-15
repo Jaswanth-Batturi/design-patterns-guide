@@ -513,7 +513,7 @@ public class History {
     category: 'behavioral',
     oneLiner: 'Price ticker pushes alerts to subscribers — no polling, add channels without editing the ticker.',
     analogy:
-      'Think of a newsletter: you subscribe once, and whenever we publish a new article, you get an email. You do not keep checking the website — the publisher notifies you.',
+      'Stock price alerts: you subscribe to AAPL on your phone and email. When the price moves, both notify you — you don’t poll the market every second.',
     analogyIcon: '📬',
     problem:
       'You have a subject (like order status) and many interested parties (email service, SMS, analytics, UI). If the subject directly calls each one, you get tight coupling, hard-to-test code, and pain every time you add a new listener.',
@@ -586,13 +586,13 @@ public class EmailNotifier implements OrderObserver {
         question: 'Which real-world example fits Observer best?',
         options: [
           'A restaurant menu creating different dishes',
-          'A newsletter subscription list',
+          'Stock price alerts on phone and email',
           'A single remote control for one TV',
           'A travel plug adapter',
         ],
         correctIndex: 1,
         explanation:
-          'Newsletter subscribers are notified when new content is published — classic Observer.',
+          'Subscribers get notified when the stock price changes — classic Observer without polling.',
       },
     ],
   },

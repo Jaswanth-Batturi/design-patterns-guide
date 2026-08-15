@@ -26,7 +26,7 @@ function auditDist() {
     return;
   }
 
-  const required = ['Real-life analogy', 'In your code', 'Run it', 'Quiz', 'Expected output'];
+  const required = ['Real-life analogy', 'Without vs with', 'Run it', 'Quiz', 'Expected output'];
   const stale = ['Patterns in Practice', 'Design Patterns, Simply'];
 
   for (const slug of slugs) {

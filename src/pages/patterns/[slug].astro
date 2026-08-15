@@ -31,10 +31,10 @@ const categoryColor: Record<string, string> = {
 
 const sections = [
   { id: 'story', label: 'Analogy' },
-  { id: 'tradeoffs', label: 'In your code' },
-  { id: 'decision', label: 'When to use' },
   { id: 'code', label: 'Code' },
+  { id: 'tradeoffs', label: 'Compare' },
   { id: 'run', label: 'Run it' },
+  { id: 'decision', label: 'When to use' },
   { id: 'quiz', label: 'Quiz' },
 ];
 ---
@@ -54,6 +54,10 @@ const sections = [
     </div>
     <h1 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{pattern.name}</h1>
     <p class="mt-2 text-base text-slate-400">{pattern.oneLiner}</p>
+    <p class="mt-2 text-xs text-slate-500">
+      Example thread: <span class="text-indigo-300/90">{pattern.exampleName}</span>
+      · Analogy → Code → Compare → Run → When to use
+    </p>
   </header>
 
   <nav
@@ -72,11 +76,26 @@ const sections = [
 
   <div class="space-y-8">
     <div id="story" class="scroll-mt-36">
-      <PatternStory slug={pattern.slug} icon={pattern.analogyIcon} steps={pattern.sceneSteps} />
+      <PatternStory slug={pattern.slug} icon={pattern.analogyIcon} example={pattern.exampleName} steps={pattern.sceneSteps} />
+    </div>
+
+    <div id="code" class="scroll-mt-36">
+      <CodeToggle
+        before={pattern.displayCodeBefore}
+        after={pattern.displayCodeAfter}
+        takeaway={pattern.codeTakeaway}
+        beforeHint={pattern.codeBeforeHint}
+        afterHint={pattern.codeAfterHint}
+        defaultView="before"
+      />
     </div>
 
     <div id="tradeoffs" class="scroll-mt-36">
-      <TradeoffCompare withoutPains={pattern.withoutPatternPains} withWins={pattern.withPatternWins} />
+      <TradeoffCompare example={pattern.exampleName} withoutPains={pattern.withoutPatternPains} withWins={pattern.withPatternWins} />
+    </div>
+
+    <div id="run" class="scroll-mt-36">
+      <CodeRunner code={pattern.runDemo} runExpect={pattern.runExpect} tryItSteps={pattern.tryItSteps} />
     </div>
 
     <details id="decision" class="scroll-mt-36 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3" open>
@@ -100,21 +119,6 @@ const sections = [
         </div>
       </div>
     </details>
-
-    <div id="code" class="scroll-mt-36">
-      <CodeToggle
-        before={pattern.displayCodeBefore}
-        after={pattern.displayCodeAfter}
-        takeaway={pattern.codeTakeaway}
-        beforeHint={pattern.codeBeforeHint}
-        afterHint={pattern.codeAfterHint}
-        defaultView="before"
-      />
-    </div>
-
-    <div id="run" class="scroll-mt-36">
-      <CodeRunner code={pattern.runDemo} runExpect={pattern.runExpect} tryItSteps={pattern.tryItSteps} />
-    </div>
 
     <div id="quiz" class="scroll-mt-36">
       <Quiz questions={pattern.quiz} />
@@ -154,7 +158,7 @@ const sections = [
 <script>
   const nav = document.querySelector('nav[aria-label="Page sections"]');
   const links = nav?.querySelectorAll('.section-jump');
-  const ids = ['story', 'tradeoffs', 'decision', 'code', 'run', 'quiz'];
+  const ids = ['story', 'code', 'tradeoffs', 'run', 'decision', 'quiz'];
 
   const sync = () => {
     if (!links) return;

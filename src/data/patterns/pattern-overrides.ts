@@ -906,57 +906,56 @@ public class MementoDemo {
 
   observer: {
     sceneSteps: [
-      'You subscribe to a food blog newsletter',
-      'The blog publishes a new recipe',
-      'You get an email instantly — no need to keep refreshing the site',
+      'You subscribe to AAPL price alerts on phone and email',
+      'When the stock price moves, both channels notify you instantly',
+      'Add SMS by subscribing — the ticker class stays unchanged',
     ],
     withoutPatternPains: [
-      'OrderStatus must know about email, SMS, analytics, and every future channel',
-      'Adding push notifications means editing OrderStatus again',
-      'You cannot test "send email" without the whole class',
+      'StockTicker.setPrice() hard-codes phone and email inside',
+      'New alert channel means editing StockTicker again',
+      'Cannot test alerts without the whole ticker class',
     ],
     withPatternWins: [
-      'OrderStatus only says "status changed" — listeners decide what to do',
-      'New listener? Subscribe it — no change to OrderStatus',
-      'Each listener is a small class you can test alone',
+      'Ticker notifies subscribed observers on each price change',
+      'New listener = subscribe() — no ticker edit',
+      'Each alert channel is a small testable class',
     ],
     codeTakeaway:
-      'Compare tabs: without Observer, setStatus() is a growing list of services. With Observer, it loops subscribers — that\'s the trick.',
+      'Observer = stock alerts: setPrice() loops observers instead of hard-coded phone and email.',
     tryItSteps: [
       'Wait for the editor, click Run ▶ inside the dark box.',
-      'You should see Email and SMS lines when status becomes SHIPPED.',
-      'Add order.subscribe(s -> System.out.println("Push: " + s)); and Run again.',
+      'Same stock-alert example: Phone alert and Email alert when AAPL price updates.',
     ],
-    codeBeforeHint: 'Subject hard-codes every listener inside setStatus().',
-    codeAfterHint: 'Subject notifies subscribed observers — add listeners without editing subject.',
+    codeBeforeHint: 'Without Observer — setPrice() calls phone and email directly inside.',
+    codeAfterHint: 'With Observer — subscribe phone and email; setPrice() notifies all.',
     runDemo: `import java.util.ArrayList;
 import java.util.List;
 
-interface OrderObserver {
-    void onStatusChanged(String status);
+interface PriceObserver {
+    void onPriceChanged(String symbol, double price);
 }
 
-class OrderStatus {
-    private final List<OrderObserver> observers = new ArrayList<>();
+class StockTicker {
+    private final List<PriceObserver> observers = new ArrayList<>();
 
-    void subscribe(OrderObserver observer) {
+    void subscribe(PriceObserver observer) {
         observers.add(observer);
     }
 
-    void setStatus(String status) {
-        System.out.println("Order status is now: " + status);
-        for (OrderObserver observer : observers) {
-            observer.onStatusChanged(status);
+    void setPrice(double price) {
+        System.out.println("AAPL price is now: " + price);
+        for (PriceObserver observer : observers) {
+            observer.onPriceChanged("AAPL", price);
         }
     }
 }
 
 public class ObserverDemo {
     public static void main(String[] args) {
-        OrderStatus order = new OrderStatus();
-        order.subscribe(s -> System.out.println("Email: shipped " + s));
-        order.subscribe(s -> System.out.println("SMS: shipped " + s));
-        order.setStatus("SHIPPED");
+        StockTicker ticker = new StockTicker();
+        ticker.subscribe((sym, p) -> System.out.println("Phone alert: " + sym + " is now " + p));
+        ticker.subscribe((sym, p) -> System.out.println("Email alert: " + sym + " hit " + p));
+        ticker.setPrice(182.45);
     }
 }`,
   },
