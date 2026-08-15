@@ -43,9 +43,9 @@ const categories: PatternCategory[] = ['creational', 'structural', 'behavioral']
         <p class="mt-2 text-slate-400">{patterns.length} GoF patterns — full library.</p>
       </div>
       <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by category" id="category-filters">
-        <button type="button" data-filter="all" class="filter-btn rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white" aria-pressed="true">All</button>
+        <button type="button" data-filter="all" class="filter-btn rounded-full bg-indigo-600 px-3 py-1 text-xs font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400" aria-pressed="true">All</button>
         {categories.map((cat) => (
-          <button type="button" data-filter={cat} class="filter-btn rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-400 hover:border-indigo-500 hover:text-white transition-colors" aria-pressed="false">
+          <button type="button" data-filter={cat} class="filter-btn rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-400 hover:border-indigo-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" aria-pressed="false">
             {categoryLabels[cat]}
           </button>
         ))}
