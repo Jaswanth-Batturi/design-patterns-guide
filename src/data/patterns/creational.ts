@@ -25,12 +25,30 @@ export const creationalPatterns: Pattern[] = [
       'Dependency injection can provide a shared instance instead',
     ],
     relatedPatterns: ['factory', 'prototype'],
-    codeBefore: `// Singleton problem — multiple config objects, inconsistent settings
-public class App {
-    public void run() {
-        AppConfig config1 = new AppConfig();
-        AppConfig config2 = new AppConfig();
-        // Two instances — settings may diverge
+    codeBefore: `// Singleton problem — every service creates its own AppConfig
+// (like installing a separate Wi‑Fi router in each room)
+public class AppConfig {
+    private String apiUrl = "https://staging.api.example.com";
+    private String theme = "light";
+
+    public void setTheme(String theme) { this.theme = theme; }
+    public String getTheme() { return theme; }
+    public String getApiUrl() { return apiUrl; }
+}
+
+public class BillingService {
+    public void charge() {
+        AppConfig config = new AppConfig(); // its own copy
+        config.setTheme("dark");
+        // Billing thinks theme is dark...
+    }
+}
+
+public class ReportService {
+    public void export() {
+        AppConfig config = new AppConfig(); // another copy
+        System.out.println(config.getTheme()); // still "light"
+        System.out.println(config.getApiUrl()); // staging, not production
     }
 }`,
     codeAfter: `// Singleton — one shared config instance

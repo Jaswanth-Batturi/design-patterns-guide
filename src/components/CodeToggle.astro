@@ -5,21 +5,32 @@ interface Props {
   before: string;
   after: string;
   takeaway: string;
+  example?: string;
   beforeHint?: string;
   afterHint?: string;
   defaultView?: 'before' | 'after';
 }
 
-const { before, after, takeaway, beforeHint, afterHint, defaultView = 'before' } = Astro.props;
+const { before, after, takeaway, example, beforeHint, afterHint, defaultView = 'before' } = Astro.props;
 const id = `code-${Math.random().toString(36).slice(2, 9)}`;
 const beforeHtml = await highlightJava(before);
 const afterHtml = await highlightJava(after);
 ---
 
-<section class="space-y-3">
+<section class="space-y-4">
   <div>
-    <h2 class="text-base font-semibold text-white">Code: problem vs fix</h2>
-    <p class="mt-0.5 text-sm text-slate-500">{takeaway}</p>
+    <h2 class="text-lg font-semibold text-white">Code: problem vs fix</h2>
+    {
+      example && (
+        <p class="mt-1 text-sm text-indigo-300/90">
+          Same example: <span class="text-indigo-200">{example}</span>
+        </p>
+      )
+    }
+    <p class="mt-2 text-base leading-relaxed text-slate-400">{takeaway}</p>
+    <p class="mt-2 text-sm text-slate-500">
+      Read the full “before” code first, then switch to “Fixed” to see the pattern applied. Comments tie each line back to the real-life story above.
+    </p>
   </div>
 
   <div class="code-toggle rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden" data-code-toggle={id} data-before-raw={before} data-after-raw={after}>
@@ -60,17 +71,17 @@ const afterHtml = await highlightJava(after);
         Copy code
       </button>
     </div>
-    <p data-hint="before" class={`border-b border-rose-500/20 bg-rose-950/20 px-4 py-2 text-xs text-rose-200/90 ${defaultView === 'before' ? '' : 'hidden'}`}>
+    <p data-hint="before" class={`border-b border-rose-500/25 bg-rose-950/30 px-4 py-3.5 text-base leading-relaxed text-rose-100/90 ${defaultView === 'before' ? '' : 'hidden'}`}>
       {beforeHint ?? 'Notice: tight coupling, hard to extend, one change forces many edits.'}
     </p>
-    <p data-hint="after" class={`border-b border-emerald-500/20 bg-emerald-950/20 px-4 py-2 text-xs text-emerald-200/90 ${defaultView === 'after' ? '' : 'hidden'}`}>
+    <p data-hint="after" class={`border-b border-emerald-500/25 bg-emerald-950/30 px-4 py-3.5 text-base leading-relaxed text-emerald-100/90 ${defaultView === 'after' ? '' : 'hidden'}`}>
       {afterHint ?? 'Notice: roles are separated — you can add new behavior without breaking old code.'}
     </p>
     <div data-panel="before" class={`highlighted-panel ${defaultView === 'before' ? '' : 'hidden'}`} aria-hidden={defaultView !== 'before' ? 'true' : 'false'}>
-      <div class="highlighted-code overflow-x-auto text-sm leading-relaxed" set:html={beforeHtml} />
+      <div class="highlighted-code overflow-x-auto leading-relaxed" set:html={beforeHtml} />
     </div>
     <div data-panel="after" class={`highlighted-panel ${defaultView === 'after' ? '' : 'hidden'}`} aria-hidden={defaultView !== 'after' ? 'true' : 'false'}>
-      <div class="highlighted-code overflow-x-auto text-sm leading-relaxed" set:html={afterHtml} />
+      <div class="highlighted-code overflow-x-auto leading-relaxed" set:html={afterHtml} />
     </div>
   </div>
 </section>
@@ -78,14 +89,14 @@ const afterHtml = await highlightJava(after);
 <style>
   .highlighted-panel :global(pre) {
     margin: 0;
-    padding: 1rem;
+    padding: 1.125rem 1.25rem;
     background: transparent !important;
     overflow-x: auto;
   }
   .highlighted-panel :global(code) {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.8125rem;
-    line-height: 1.6;
+    font-size: 0.9375rem;
+    line-height: 1.7;
   }
 </style>
 

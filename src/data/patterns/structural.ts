@@ -320,12 +320,24 @@ project.render();`,
       'Decorators would be ordered incorrectly and break behavior',
     ],
     relatedPatterns: ['adapter', 'bridge', 'proxy'],
-    codeBefore: `// Decorator smell — subclass explosion
+    codeBefore: `// Decorator smell — every topping combo needs its own subclass
 abstract class Pizza { abstract double cost(); }
+
 class PlainPizza extends Pizza { double cost() { return 5.0; } }
 class CheesePizza extends Pizza { double cost() { return 6.0; } }
+class OlivePizza extends Pizza { double cost() { return 5.5; } }
 class CheeseOlivePizza extends Pizza { double cost() { return 7.5; } }
-// Every combo needs a new class...`,
+class CheeseOliveMushroomPizza extends Pizza { double cost() { return 8.5; } }
+
+public class OrderApp {
+    public double price(String combo) {
+        // Client must know every combo class name
+        if ("cheese-olive".equals(combo)) return new CheeseOlivePizza().cost();
+        if ("plain".equals(combo)) return new PlainPizza().cost();
+        throw new IllegalArgumentException("Unknown combo");
+        // Add "extra cheese" tomorrow → another subclass + another branch
+    }
+}`,
     codeAfter: `// Decorator — stack features dynamically
 interface Pizza {
     double cost();
@@ -510,6 +522,24 @@ public class Tree {
         this.name = name;
         this.color = color;
         this.sprite = sprite;
+    }
+
+    public void draw() {
+        System.out.println("Draw " + name + " at " + x + "," + y);
+    }
+}
+
+public class Forest {
+    public void plantMillionOakTrees() {
+        byte[] oakSprite = loadHeavySprite("oak.png"); // loaded once per tree!
+        for (int i = 0; i < 1_000_000; i++) {
+            new Tree(i, i, "Oak", "green", oakSprite);
+        }
+        // Memory explodes — 1M copies of the same sprite bytes
+    }
+
+    private byte[] loadHeavySprite(String file) {
+        return new byte[1024 * 64]; // pretend 64KB image data
     }
 }`,
     codeAfter: `// Flyweight — share intrinsic tree type, keep position extrinsic

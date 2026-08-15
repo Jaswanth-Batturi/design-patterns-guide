@@ -76,7 +76,14 @@ const sections = [
 
   <div class="space-y-8">
     <div id="story" class="scroll-mt-36">
-      <PatternStory slug={pattern.slug} icon={pattern.analogyIcon} example={pattern.exampleName} steps={pattern.sceneSteps} />
+      <PatternStory
+        slug={pattern.slug}
+        icon={pattern.analogyIcon}
+        example={pattern.exampleName}
+        overview={pattern.overview}
+        problemStatement={pattern.problemStatement}
+        steps={pattern.sceneSteps}
+      />
     </div>
 
     <div id="code" class="scroll-mt-36">
@@ -84,6 +91,7 @@ const sections = [
         before={pattern.displayCodeBefore}
         after={pattern.displayCodeAfter}
         takeaway={pattern.codeTakeaway}
+        example={pattern.exampleName}
         beforeHint={pattern.codeBeforeHint}
         afterHint={pattern.codeAfterHint}
         defaultView="before"
@@ -91,16 +99,32 @@ const sections = [
     </div>
 
     <div id="tradeoffs" class="scroll-mt-36">
-      <TradeoffCompare example={pattern.exampleName} withoutPains={pattern.withoutPatternPains} withWins={pattern.withPatternWins} />
+      <TradeoffCompare
+        example={pattern.exampleName}
+        patternName={pattern.name}
+        intro={pattern.tradeoffIntro}
+        withoutPains={pattern.withoutPatternPains}
+        withWins={pattern.withPatternWins}
+      />
     </div>
 
     <div id="run" class="scroll-mt-36">
-      <CodeRunner code={pattern.runDemo} runExpect={pattern.runExpect} tryItSteps={pattern.tryItSteps} />
+      <CodeRunner
+        code={pattern.runDemo}
+        runExpect={pattern.runExpect}
+        example={pattern.exampleName}
+        codeBridge={pattern.codeBridge}
+        tryItSteps={pattern.tryItSteps}
+      />
     </div>
 
-    <details id="decision" class="scroll-mt-36 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3" open>
-      <summary class="cursor-pointer text-sm font-medium text-slate-300 select-none">When to use or skip</summary>
-      <div class="mt-3 grid gap-4 sm:grid-cols-2 text-sm text-slate-500">
+    <details id="decision" class="scroll-mt-36 rounded-xl border border-slate-800 bg-slate-900/30 px-5 py-4" open>
+      <summary class="cursor-pointer text-base font-medium text-slate-200 select-none">When to use or skip</summary>
+      <p class="mt-4 text-base leading-relaxed text-slate-400">
+        These guidelines apply after you understand the <span class="text-slate-300">{pattern.exampleName}</span> example above.
+        Use {pattern.name} when the problem matches the pattern’s intent; skip it when a simpler approach is enough.
+      </p>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2 text-base text-slate-400 leading-relaxed">
         <div>
           <p class="mb-2 text-xs font-medium uppercase tracking-wide text-emerald-400/80">Use when</p>
           <ul class="space-y-1.5">
