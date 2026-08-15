@@ -15,7 +15,7 @@ const SLUGS = [
 
 const STALE = ['Patterns in Practice', 'Design Patterns, Simply', 'Real-life scene → code'];
 const PATTERN_SECTIONS = ['Real-life analogy', 'Without vs with', 'Code: problem vs fix', 'Run it', 'Quiz'];
-const SECTION_IDS = ['problem', 'story', 'code', 'tradeoffs', 'run', 'decision', 'quiz'];
+const SECTION_IDS = ['story', 'problem', 'code', 'tradeoffs', 'run', 'decision', 'quiz'];
 
 const issues = [];
 const record = (severity, area, msg) => {

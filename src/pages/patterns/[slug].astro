@@ -32,8 +32,8 @@ const categoryColor: Record<string, string> = {
 };
 
 const sections = [
-  { id: 'problem', label: 'Problem' },
   { id: 'story', label: 'Analogy' },
+  { id: 'problem', label: 'Problem' },
   { id: 'code', label: 'Code' },
   { id: 'tradeoffs', label: 'Compare' },
   { id: 'run', label: 'Run it' },
@@ -74,8 +74,6 @@ const sections = [
   </nav>
 
   <div class="space-y-8">
-    <PatternProblem problemStatement={pattern.problemStatement} />
-
     <div id="story" class="scroll-mt-36">
       <PatternStory
         slug={pattern.slug}
@@ -85,6 +83,8 @@ const sections = [
         steps={pattern.sceneSteps}
       />
     </div>
+
+    <PatternProblem problemStatement={pattern.problemStatement} />
 
     <div id="code" class="scroll-mt-36">
       <CodeToggle
@@ -152,7 +152,7 @@ const sections = [
 <script>
   const nav = document.querySelector('nav[aria-label="Page sections"]');
   const links = nav?.querySelectorAll('.section-jump');
-  const ids = ['problem', 'story', 'code', 'tradeoffs', 'run', 'decision', 'quiz'];
+  const ids = ['story', 'problem', 'code', 'tradeoffs', 'run', 'decision', 'quiz'];
 
   const sync = () => {
     if (!links) return;
