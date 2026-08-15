@@ -28,11 +28,11 @@ function auditDist() {
   }
 
   const requiredSections = [
-    'Start with real life',
-    'Same story in software',
-    'Code comparison',
+    'Real-life analogy',
+    'In your code',
+    'Code',
     'Run it',
-    'Quick quiz',
+    'Quiz',
   ];
 
   for (const slug of slugs) {

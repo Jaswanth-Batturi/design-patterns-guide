@@ -1,0 +1,35 @@
+---
+import { getIllustration } from '../data/patterns/pattern-illustrations';
+
+interface Props {
+  slug: string;
+  icon: string;
+  steps: [string, string, string];
+}
+
+const { slug, icon, steps } = Astro.props;
+const illo = getIllustration(slug, icon);
+const labels: [string, string, string] = ['Situation', 'Problem', 'Fix'];
+---
+
+<section class="rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden" aria-label="Real-life analogy">
+  <div class="border-b border-slate-800 bg-slate-950/50 px-4 py-3 sm:px-5">
+    <h2 class="text-base font-semibold text-white">Real-life analogy</h2>
+    <p class="mt-0.5 text-sm text-slate-500">{illo.label}</p>
+  </div>
+
+  <div class="grid sm:grid-cols-[minmax(0,200px)_1fr] gap-0">
+    <div class="flex items-center justify-center border-b sm:border-b-0 sm:border-r border-slate-800 bg-indigo-950/20 p-4 sm:p-5">
+      <div class="w-full max-w-[180px]" set:html={illo.svg} />
+    </div>
+
+    <ol class="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-800 list-none">
+      {steps.map((step, i) => (
+        <li class="flex flex-col p-4 sm:p-5 min-h-[100px]">
+          <span class="text-[10px] font-medium uppercase tracking-wide text-slate-500">{labels[i]}</span>
+          <span class="mt-2 text-sm leading-snug text-slate-300">{step}</span>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

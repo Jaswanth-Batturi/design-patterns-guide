@@ -112,14 +112,14 @@ async function run() {
   await page.goto(`${BASE}/patterns/observer/`, { waitUntil: 'domcontentloaded' });
 
   // Code toggle — default shows WITHOUT pattern first
-  const beforeTab = page.getByRole('tab', { name: 'Problem code' });
-  const afterTab = page.getByRole('tab', { name: 'Pattern code' });
+  const beforeTab = page.getByRole('tab', { name: 'Problem' });
+  const afterTab = page.getByRole('tab', { name: 'Fixed' });
   if (await beforeTab.getAttribute('aria-selected') !== 'true') {
-    record('HIGH', 'Code', 'Default tab should be Problem code');
+    record('HIGH', 'Code', 'Default tab should be Problem');
   }
   const beforeVisible = await page.locator('[data-panel="before"]').isVisible();
   if (!beforeVisible) {
-    record('HIGH', 'Code', 'Problem code panel should be visible by default');
+    record('HIGH', 'Code', 'Problem panel should be visible by default');
   }
   await afterTab.click();
 
@@ -178,18 +178,18 @@ async function run() {
 
   // Section jump nav
   const jumpNav = page.locator('nav[aria-label="Page sections"] a.section-jump');
-  if (await jumpNav.count() < 6) {
+  if (await jumpNav.count() < 5) {
     record('HIGH', 'Pattern page', 'Section jump links missing');
   }
   await jumpNav.filter({ hasText: 'Run' }).click();
   await page.waitForTimeout(300);
-  const tryItBox = await page.locator('#try-it').boundingBox();
-  if (!tryItBox || tryItBox.y > 250) {
-    record('MED', 'Pattern page', 'Try it jump link may not scroll to #try-it');
+  const runBox = await page.locator('#run').boundingBox();
+  if (!runBox || runBox.y > 250) {
+    record('MED', 'Pattern page', 'Run jump link may not scroll to #run');
   }
 
   // Related pattern link
-  const related = page.locator('section').filter({ hasText: 'Often confused with' }).locator('a').first();
+  const related = page.locator('section').filter({ hasText: 'Related' }).locator('a').first();
   if (await related.count() > 0) {
     const relHref = await related.getAttribute('href');
     if (!relHref?.includes('/patterns/')) {
@@ -234,8 +234,8 @@ async function run() {
       record('HIGH', 'Routes', `${slug} missing h1`);
     }
     // Quick tab click each page
-    await page.getByRole('tab', { name: 'Problem code' }).click();
-    await page.getByRole('tab', { name: 'Pattern code' }).click();
+    await page.getByRole('tab', { name: 'Problem' }).click();
+    await page.getByRole('tab', { name: 'Fixed' }).click();
   }
 
   // Pattern search

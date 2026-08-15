@@ -58,7 +58,7 @@ if (!observerHtml.includes('data-oc-frame')) {
   console.error('MISSING: OneCompiler runner on observer page');
   failed++;
 }
-if (!observerHtml.includes('scene-card') && !observerHtml.includes('Start with real life')) {
+if (!observerHtml.includes('scene-card') && !observerHtml.includes('Real-life analogy')) {
   console.error('MISSING: real-life scene on observer page');
   failed++;
 }
